@@ -4,6 +4,22 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Clock, CheckCircle, AlertTriangle, ArrowLeft, Loader2, Trophy, Lock } from "lucide-react";
+import { toast } from "sonner";
 
 interface SubmissionData {
   realWorld: string;
@@ -25,7 +41,6 @@ export default function FinalAnswerPage() {
   const [villain, setVillain] = useState("");
   const [weapon, setWeapon] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
@@ -57,17 +72,15 @@ export default function FinalAnswerPage() {
   function handleSubmitClick(e: React.FormEvent) {
     e.preventDefault();
     if (!realWorld.trim() || !villain.trim() || !weapon.trim()) {
-      setError("All fields are required.");
+      toast.error("All fields are required.");
       return;
     }
-    setError("");
     setShowConfirm(true);
   }
 
   async function confirmSubmit() {
     setSubmitting(true);
     setShowConfirm(false);
-    setError("");
 
     try {
       const res = await fetch("/api/final/submit", {
@@ -83,7 +96,7 @@ export default function FinalAnswerPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error);
+        toast.error(data.error || "Submission failed");
         setSubmitting(false);
         return;
       }
@@ -91,278 +104,203 @@ export default function FinalAnswerPage() {
       setAlreadySubmitted(true);
       setSubmission(data.submission);
       setSubmitting(false);
+      toast.success("Final answer submitted successfully!");
     } catch {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
       setSubmitting(false);
     }
   }
 
   if (loading) {
     return (
-      <div className="relative z-10 flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-t-transparent" style={{ borderColor: "var(--accent-primary)", borderTopColor: "transparent" }} />
-          <p style={{ color: "var(--text-secondary)" }}>Checking final answer status...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">Checking final answer status...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative z-10 min-h-screen pb-24">
+    <div className="min-h-screen pb-24 relative z-10">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 px-6 py-4">
-        <div className="mx-auto flex max-w-2xl items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-            style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}
-          >
-            ←
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-16 max-w-2xl items-center gap-4 px-6">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
           </Link>
           <div>
-            <h2 className="font-bold gradient-text">Final Answer</h2>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-              One submission only — choose wisely
-            </p>
+            <h2 className="text-lg font-bold">Final Answer</h2>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {alreadySubmitted ? (
+                 <span className="text-success flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Submitted</span>
+              ) : isOpen ? (
+                 <span className="text-primary flex items-center gap-1"><Clock className="h-3 w-3" /> Time Remaining</span>
+              ) : (
+                 <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> Locked</span>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Content */}
-      <main className="mx-auto max-w-2xl px-6 pt-8">
+      <main className="container mx-auto max-w-2xl px-6 pt-8 space-y-6">
         {/* Not Open */}
         {!isOpen && !alreadySubmitted && (
-          <div className="py-16 text-center">
-            <div className="mb-4 text-6xl">⏳</div>
-            <h3 className="mb-3 text-2xl font-bold">Not Available Yet</h3>
-            <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
-              The final answer submission will open during the last 30 minutes of the event.
-              Keep solving worlds until then!
-            </p>
-            <Link href="/dashboard" className="btn-primary inline-block">
-              ← Back to Dashboard
-            </Link>
-          </div>
+          <Card className="text-center py-12">
+            <CardContent>
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                    <Clock className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <h3 className="mb-2 text-2xl font-bold">Not Available Yet</h3>
+                <p className="mb-6 text-muted-foreground">
+                The final answer submission will open during the last 30 minutes of the event.
+                Keep solving worlds until then!
+                </p>
+                <Link href="/dashboard">
+                <Button>Back to Dashboard</Button>
+                </Link>
+            </CardContent>
+          </Card>
         )}
 
         {/* Already Submitted */}
         {alreadySubmitted && submission && (
-          <div className="animate-fade-in-up">
-            <div className="card mb-6 p-6 text-center" style={{ borderColor: "var(--success)" }}>
-              <div className="mb-4 text-5xl">🏆</div>
-              <h3 className="mb-2 text-2xl font-bold" style={{ color: "var(--success)" }}>
-                Answer Submitted!
-              </h3>
-              <p className="mb-4" style={{ color: "var(--text-secondary)" }}>
-                Your final answer has been recorded. No changes can be made.
-              </p>
-            </div>
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Card className="border-success/50 bg-success/5">
+                <CardContent className="flex flex-col items-center text-center py-8">
+                    <div className="h-16 w-16 mb-4 rounded-full bg-success/10 flex items-center justify-center">
+                        <Trophy className="h-8 w-8 text-success" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-success mb-2">Answer Submitted!</h3>
+                    <p className="text-muted-foreground">
+                        Your final answer has been recorded. Good luck!
+                    </p>
+                </CardContent>
+            </Card>
 
-            <div className="card p-6">
-              <h4 className="mb-4 font-semibold" style={{ color: "var(--text-secondary)" }}>
-                Your Submission
-              </h4>
-              <div className="space-y-4">
-                <div className="rounded-xl p-4" style={{ background: "var(--bg-secondary)" }}>
-                  <p className="mb-1 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                    Real World
-                  </p>
-                  <p className="text-lg font-semibold">{submission.realWorld}</p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Submission</CardTitle>
+                <CardDescription>
+                    Submitted on {new Date(submission.submittedAt).toLocaleString("en-IN")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-1">
+                  <Label className="text-muted-foreground">Real World</Label>
+                  <div className="p-3 bg-muted rounded-md font-medium">{submission.realWorld}</div>
                 </div>
-                <div className="rounded-xl p-4" style={{ background: "var(--bg-secondary)" }}>
-                  <p className="mb-1 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                    Villain
-                  </p>
-                  <p className="text-lg font-semibold">{submission.villain}</p>
+                <div className="grid gap-1">
+                    <Label className="text-muted-foreground">Villain</Label>
+                    <div className="p-3 bg-muted rounded-md font-medium">{submission.villain}</div>
                 </div>
-                <div className="rounded-xl p-4" style={{ background: "var(--bg-secondary)" }}>
-                  <p className="mb-1 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                    Weapon
-                  </p>
-                  <p className="text-lg font-semibold">{submission.weapon}</p>
+                <div className="grid gap-1">
+                    <Label className="text-muted-foreground">Weapon</Label>
+                    <div className="p-3 bg-muted rounded-md font-medium">{submission.weapon}</div>
                 </div>
-                <div className="rounded-xl p-4" style={{ background: "var(--bg-secondary)" }}>
-                  <p className="mb-1 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                    Submitted At
-                  </p>
-                  <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
-                    {new Date(submission.submittedAt).toLocaleString("en-IN")}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 text-center">
-              <Link href="/dashboard" className="btn-primary inline-block">
-                ← Back to Dashboard
-              </Link>
-            </div>
+              </CardContent>
+              <CardFooter className="justify-center">
+                <Link href="/dashboard">
+                    <Button variant="outline">Back to Dashboard</Button>
+                </Link>
+              </CardFooter>
+            </Card>
           </div>
         )}
 
         {/* Open - Submit Form */}
         {isOpen && !alreadySubmitted && (
-          <div className="animate-fade-in-up">
-            {/* Warning banner */}
-            <div
-              className="mb-6 rounded-xl p-4 text-center"
-              style={{
-                background: "rgba(255, 193, 7, 0.1)",
-                border: "1px solid var(--warning)",
-              }}
-            >
-              <p className="text-sm font-semibold" style={{ color: "var(--warning)" }}>
-                ⚠️ You can only submit ONCE. Make sure your answers are correct!
-              </p>
-            </div>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Alert className="mb-6 border-warning/50 bg-warning/5 text-warning-foreground">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                <AlertTitle className="text-warning">Warning</AlertTitle>
+                <AlertDescription className="text-warning/90">
+                    You can only submit ONCE. This action cannot be undone.
+                </AlertDescription>
+            </Alert>
 
-            <form onSubmit={handleSubmitClick}>
-              <div className="space-y-4">
-                {/* Real World */}
-                <div className="card p-5">
-                  <label
-                    htmlFor="realWorld"
-                    className="mb-2 flex items-center gap-2 text-sm font-medium"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    <span className="text-lg">🌍</span> Real World
-                  </label>
-                  <input
-                    id="realWorld"
-                    type="text"
-                    value={realWorld}
-                    onChange={(e) => setRealWorld(e.target.value)}
-                    placeholder="Which world is the real one?"
-                    className="input-field"
-                    required
-                    disabled={submitting}
-                  />
-                </div>
-
-                {/* Villain */}
-                <div className="card p-5">
-                  <label
-                    htmlFor="villain"
-                    className="mb-2 flex items-center gap-2 text-sm font-medium"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    <span className="text-lg">🦹</span> Villain
-                  </label>
-                  <input
-                    id="villain"
-                    type="text"
-                    value={villain}
-                    onChange={(e) => setVillain(e.target.value)}
-                    placeholder="Who is the villain?"
-                    className="input-field"
-                    required
-                    disabled={submitting}
-                  />
-                </div>
-
-                {/* Weapon */}
-                <div className="card p-5">
-                  <label
-                    htmlFor="weapon"
-                    className="mb-2 flex items-center gap-2 text-sm font-medium"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    <span className="text-lg">🗡️</span> Weapon
-                  </label>
-                  <input
-                    id="weapon"
-                    type="text"
-                    value={weapon}
-                    onChange={(e) => setWeapon(e.target.value)}
-                    placeholder="What weapon was used?"
-                    className="input-field"
-                    required
-                    disabled={submitting}
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <div
-                  className="mt-4 rounded-xl px-4 py-3 text-center text-sm"
-                  style={{
-                    background: "rgba(255, 82, 82, 0.1)",
-                    border: "1px solid var(--danger)",
-                    color: "var(--danger)",
-                  }}
-                >
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="btn-primary mt-6 w-full py-4 text-lg"
-              >
-                {submitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Submitting...
-                  </span>
-                ) : (
-                  "Submit Final Answer 🔐"
-                )}
-              </button>
-            </form>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Submit Final Answer</CardTitle>
+                    <CardDescription>Enter your deduction details below.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmitClick} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="realWorld">Real World</Label>
+                            <Input
+                                id="realWorld"
+                                value={realWorld}
+                                onChange={(e) => setRealWorld(e.target.value)}
+                                placeholder="Which world is the real one?"
+                                disabled={submitting}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="villain">Villain</Label>
+                            <Input
+                                id="villain"
+                                value={villain}
+                                onChange={(e) => setVillain(e.target.value)}
+                                placeholder="Who is the villain?"
+                                disabled={submitting}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="weapon">Weapon</Label>
+                            <Input
+                                id="weapon"
+                                value={weapon}
+                                onChange={(e) => setWeapon(e.target.value)}
+                                placeholder="What weapon was used?"
+                                disabled={submitting}
+                            />
+                        </div>
+                        <Button type="submit" className="w-full mt-4" disabled={submitting}>
+                            Review & Submit
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
           </div>
         )}
 
         {/* Confirmation Dialog */}
-        {showConfirm && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-6">
-            <div
-              className="animate-fade-in-up w-full max-w-md rounded-2xl p-8"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}
-            >
-              <div className="mb-4 text-center text-4xl">⚠️</div>
-              <h3 className="mb-2 text-center text-xl font-bold">Are you sure?</h3>
-              <p className="mb-6 text-center text-sm" style={{ color: "var(--text-secondary)" }}>
-                This action cannot be undone. Your final answer will be locked permanently.
-              </p>
-
-              <div className="mb-6 space-y-3 rounded-xl p-4" style={{ background: "var(--bg-secondary)" }}>
-                <div className="flex justify-between">
-                  <span className="text-sm" style={{ color: "var(--text-muted)" }}>Real World:</span>
-                  <span className="font-semibold">{realWorld}</span>
+        <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Confirm Submission</DialogTitle>
+                    <DialogDescription>
+                        Are you sure these are your final answers? This cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right text-muted-foreground">World</Label>
+                        <span className="col-span-3 font-semibold">{realWorld}</span>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right text-muted-foreground">Villain</Label>
+                        <span className="col-span-3 font-semibold">{villain}</span>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right text-muted-foreground">Weapon</Label>
+                        <span className="col-span-3 font-semibold">{weapon}</span>
+                    </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm" style={{ color: "var(--text-muted)" }}>Villain:</span>
-                  <span className="font-semibold">{villain}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm" style={{ color: "var(--text-muted)" }}>Weapon:</span>
-                  <span className="font-semibold">{weapon}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="flex-1 rounded-xl border py-3 font-medium transition-colors hover:bg-white/5"
-                  style={{ borderColor: "var(--border-color)" }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmSubmit}
-                  className="btn-primary flex-1 py-3"
-                >
-                  Confirm & Submit
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowConfirm(false)}>Cancel</Button>
+                    <Button onClick={confirmSubmit} disabled={submitting}>
+                        {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Confirm & Submit
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

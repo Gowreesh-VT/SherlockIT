@@ -4,6 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Scroll, HelpCircle, CheckCircle, ArrowLeft, Loader2, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface WorldData {
   _id: string;
@@ -25,9 +32,35 @@ export default function WorldDetailPage() {
   const [loading, setLoading] = useState(true);
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [displayedStory, setDisplayedStory] = useState("");
   const [storyComplete, setStoryComplete] = useState(false);
+
+  // Typewriter effect
+  useEffect(() => {
+    if (!world?.story) return;
+
+    if (world.isCompleted) {
+      setDisplayedStory(world.story);
+      setStoryComplete(true);
+      return;
+    }
+
+    let i = 0;
+    setDisplayedStory("");
+    setStoryComplete(false);
+
+    const timer = setInterval(() => {
+      if (i < world.story.length) {
+        setDisplayedStory(world.story.slice(0, i + 1));
+        i++;
+      } else {
+        setStoryComplete(true);
+        clearInterval(timer);
+      }
+    }, 25);
+
+    return () => clearInterval(timer);
+  }, [world]);
 
   const fetchWorld = useCallback(async () => {
     try {
@@ -60,40 +93,11 @@ export default function WorldDetailPage() {
     }
   }, [status, session, router, fetchWorld]);
 
-  // Typewriter animation for story
-  useEffect(() => {
-    if (!world?.story) return;
-
-    // If already completed, show full story immediately
-    if (world.isCompleted) {
-      setDisplayedStory(world.story);
-      setStoryComplete(true);
-      return;
-    }
-
-    let i = 0;
-    setDisplayedStory("");
-    setStoryComplete(false);
-
-    const timer = setInterval(() => {
-      if (i < world.story.length) {
-        setDisplayedStory(world.story.slice(0, i + 1));
-        i++;
-      } else {
-        setStoryComplete(true);
-        clearInterval(timer);
-      }
-    }, 25);
-
-    return () => clearInterval(timer);
-  }, [world]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!answer.trim() || submitting) return;
 
     setSubmitting(true);
-    setFeedback(null);
 
     try {
       const res = await fetch("/api/worlds/submit", {
@@ -105,16 +109,13 @@ export default function WorldDetailPage() {
       const data = await res.json();
 
       if (data.correct) {
-        setFeedback({
-          type: "success",
-          message: data.message + (data.nextWorldUnlocked ? ` New world unlocked: ${data.nextWorldTitle}` : ""),
-        });
+        toast.success(data.message + (data.nextWorldUnlocked ? ` 🌟 New world unlocked: ${data.nextWorldTitle}` : ""));
         setWorld((prev) => prev ? { ...prev, isCompleted: true } : prev);
       } else {
-        setFeedback({ type: "error", message: data.message });
+        toast.error(data.message);
       }
     } catch {
-      setFeedback({ type: "error", message: "Network error. Please try again." });
+      toast.error("Network error. Please try again.");
     } finally {
       setSubmitting(false);
       setAnswer("");
@@ -130,10 +131,10 @@ export default function WorldDetailPage() {
 
   if (loading) {
     return (
-      <div className="relative z-10 flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-t-transparent" style={{ borderColor: "var(--accent-primary)", borderTopColor: "transparent" }} />
-          <p style={{ color: "var(--text-secondary)" }}>Entering the world...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">Entering the world...</p>
         </div>
       </div>
     );
@@ -141,161 +142,131 @@ export default function WorldDetailPage() {
 
   if (!world) {
     return (
-      <div className="relative z-10 flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 text-5xl">❌</div>
-          <h2 className="mb-2 text-xl font-semibold">World Not Found</h2>
-          <Link href="/dashboard" className="btn-primary mt-4 inline-block">
-            ← Back to Dashboard
-          </Link>
-        </div>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <XCircle className="h-16 w-16 text-destructive" />
+        <h2 className="text-2xl font-bold">World Not Found</h2>
+        <Link href="/dashboard">
+          <Button>Back to Dashboard</Button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="relative z-10 min-h-screen pb-24">
+    <div className="min-h-screen pb-24 relative z-10">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 px-6 py-4">
-        <div className="mx-auto flex max-w-2xl items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-            style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}
-          >
-            ←
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-16 max-w-2xl items-center gap-4 px-6">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
           </Link>
           <div className="flex-1">
-            <h2 className="font-bold gradient-text">{world.title}</h2>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+            <h2 className="text-lg font-bold truncate">{world.title}</h2>
+            <p className="text-xs text-muted-foreground">
               World {world.order} • {world.attempts} attempt{world.attempts !== 1 ? "s" : ""}
             </p>
           </div>
           {world.isCompleted && (
-            <span
-              className="rounded-full px-3 py-1 text-xs font-bold"
-              style={{ background: "rgba(0, 200, 83, 0.15)", color: "var(--success)" }}
-            >
-              ✓ Completed
-            </span>
+            <Badge variant="outline" className="border-success/50 text-success bg-success/10 gap-1">
+              <CheckCircle className="h-3 w-3" /> Completed
+            </Badge>
           )}
         </div>
       </header>
 
-      {/* Content */}
-      <main className="mx-auto max-w-2xl px-6 pt-8">
+      <main className="container mx-auto max-w-2xl px-6 pt-8 space-y-6">
         {/* Story Section */}
-        <div className="card mb-6 p-6">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="text-xl">📜</span>
-            <h3 className="font-semibold" style={{ color: "var(--text-secondary)" }}>
-              The Story
-            </h3>
-          </div>
-          <div
-            className="relative text-base leading-relaxed"
-            style={{ color: "var(--text-primary)", minHeight: "80px" }}
-          >
-            <p className="whitespace-pre-wrap">
-              {displayedStory}
-              {!storyComplete && (
-                <span className="ml-0.5 inline-block h-5 w-0.5 animate-pulse" style={{ background: "var(--accent-primary)" }} />
-              )}
-            </p>
-            {!storyComplete && (
-              <button
+        <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center gap-2 pb-2">
+            <Scroll className="h-5 w-5 text-primary" />
+            <span className="font-semibold text-muted-foreground">The Story</span>
+          </CardHeader>
+          <CardContent className="min-h-[100px] relative">
+             <p className="whitespace-pre-wrap leading-relaxed">
+                {displayedStory}
+                {!storyComplete && (
+                    <span className="ml-1 inline-block h-4 w-0.5 animate-pulse bg-primary align-middle" />
+                )}
+             </p>
+             {!storyComplete && (
+               <Button 
+                variant="link" 
+                size="sm" 
                 onClick={skipAnimation}
-                className="mt-4 text-sm underline"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Skip animation →
-              </button>
-            )}
-          </div>
-        </div>
+                className="absolute bottom-2 right-2 text-xs text-muted-foreground hover:text-primary"
+               >
+                 Skip animation
+               </Button>
+             )}
+          </CardContent>
+        </Card>
 
         {/* Question Section */}
-        <div className="card mb-6 p-6" style={{ borderColor: "var(--accent-secondary)" }}>
-          <div className="mb-3 flex items-center gap-2">
-            <span className="text-xl">❓</span>
-            <h3 className="font-semibold" style={{ color: "var(--accent-primary)" }}>
-              The Question
-            </h3>
-          </div>
-          <p className="text-lg font-medium">{world.question}</p>
-        </div>
-
-        {/* Feedback */}
-        {feedback && (
-          <div
-            className="animate-fade-in-up mb-6 rounded-xl px-5 py-4 text-center font-medium"
-            style={{
-              background: feedback.type === "success" ? "rgba(0, 200, 83, 0.1)" : "rgba(255, 82, 82, 0.1)",
-              border: `1px solid ${feedback.type === "success" ? "var(--success)" : "var(--danger)"}`,
-              color: feedback.type === "success" ? "var(--success)" : "var(--danger)",
-            }}
-          >
-            {feedback.message}
-          </div>
-        )}
+        <Card className="border-secondary/30 bg-secondary/5">
+          <CardHeader className="flex flex-row items-center gap-2 pb-2">
+            <HelpCircle className="h-5 w-5 text-secondary-foreground" />
+            <span className="font-semibold text-secondary-foreground">The Question</span>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-medium">{world.question}</p>
+          </CardContent>
+        </Card>
 
         {/* Answer Form */}
-        {!world.isCompleted && (
-          <form onSubmit={handleSubmit} className="card p-6">
-            <div className="mb-4">
-              <label
-                htmlFor="answer"
-                className="mb-2 block text-sm font-medium"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Your Answer
-              </label>
-              <input
-                id="answer"
-                type="text"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                placeholder="Type your answer here..."
-                className="input-field text-lg"
-                required
-                autoFocus
-                disabled={submitting}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting || !answer.trim()}
-              className="btn-primary w-full py-4 text-lg"
-            >
-              {submitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Checking...
-                </span>
-              ) : (
-                "Submit Answer 🔎"
-              )}
-            </button>
-          </form>
-        )}
-
-        {/* Completed state */}
-        {world.isCompleted && (
-          <div className="card p-6 text-center" style={{ borderColor: "var(--success)" }}>
-            <div className="mb-3 text-4xl">🎉</div>
-            <h3 className="mb-2 text-xl font-bold" style={{ color: "var(--success)" }}>
-              World Completed!
-            </h3>
-            <p className="mb-4" style={{ color: "var(--text-secondary)" }}>
-              Great detective work! Head back to explore more worlds.
-            </p>
-            <Link href="/dashboard" className="btn-primary inline-block">
-              ← Back to Dashboard
-            </Link>
-          </div>
+        {!world.isCompleted ? (
+            <Card>
+                <CardContent className="pt-6">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <label htmlFor="answer" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Your Answer
+                            </label>
+                            <Input
+                                id="answer"
+                                value={answer}
+                                onChange={(e) => setAnswer(e.target.value)}
+                                placeholder="Type your answer here..."
+                                className="h-12 text-lg bg-background"
+                                required
+                                disabled={submitting}
+                                autoComplete="off"
+                            />
+                        </div>
+                        <Button 
+                            type="submit" 
+                            className="w-full text-lg h-12" 
+                            disabled={submitting || !answer.trim()}
+                        >
+                            {submitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Verifying...
+                                </>
+                            ) : (
+                                "Submit Answer"
+                            )}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+        ) : (
+             <Card className="bg-success/5 border-success/30">
+                <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="h-16 w-16 flex items-center justify-center rounded-full bg-success/10 mb-4">
+                        <CheckCircle className="h-8 w-8 text-success" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-success mb-2">World Completed!</h3>
+                    <p className="text-muted-foreground mb-6">
+                        Great detective work! You've solved this mystery.
+                    </p>
+                    <Link href="/dashboard">
+                        <Button variant="outline" className="border-success/50 text-success hover:bg-success/10 hover:text-success">
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+                        </Button>
+                    </Link>
+                </CardContent>
+            </Card>
         )}
       </main>
     </div>
