@@ -44,9 +44,18 @@ export default function AnnouncementsPage() {
     if (status === "authenticated") {
       fetchAnnouncements();
 
-      // Auto-refresh every 5 seconds for near-real-time updates
-      const interval = setInterval(fetchAnnouncements, 5000);
-      return () => clearInterval(interval);
+      // Listen for new announcements via SSE (no polling)
+      const eventSource = new EventSource("/api/announcements/stream");
+      eventSource.onmessage = (event) => {
+        try {
+          const announcement = JSON.parse(event.data);
+          setAnnouncements((prev) => [announcement, ...prev]);
+        } catch {
+          // Ignore parse errors
+        }
+      };
+
+      return () => eventSource.close();
     }
   }, [status, router]);
 

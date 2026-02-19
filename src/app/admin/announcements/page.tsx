@@ -16,6 +16,7 @@ export default function AnnouncementsPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [customMessage, setCustomMessage] = useState('');
 
   // Fetch existing announcements
   useEffect(() => {
@@ -191,6 +192,69 @@ export default function AnnouncementsPage() {
               </>
             )}
           </button>
+        </div>
+      </div>
+
+      {/* Custom Message */}
+      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-800">
+          <h2 className="text-base font-semibold text-white">Custom Message</h2>
+          <p className="text-slate-500 text-sm mt-1">Write and send a custom announcement</p>
+        </div>
+        <div className="p-5 space-y-4">
+          <textarea
+            value={customMessage}
+            onChange={(e) => setCustomMessage(e.target.value)}
+            placeholder="Type your custom announcement here..."
+            rows={3}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 resize-none text-sm"
+          />
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">{customMessage.length} characters</span>
+            <button
+              onClick={async () => {
+                if (!customMessage.trim()) return;
+                setIsSending(true);
+                setError(null);
+                const res = await sendAnnouncement(customMessage.trim());
+                if (res.error) {
+                  setError(res.error);
+                  setIsSending(false);
+                  return;
+                }
+                const newAnnouncement: Announcement = {
+                  _id: `a${Date.now()}`,
+                  message: customMessage.trim(),
+                  createdAt: new Date().toISOString(),
+                };
+                setAnnouncements([newAnnouncement, ...announcements]);
+                setIsSending(false);
+                setCustomMessage('');
+                setShowSuccess(true);
+                setTimeout(() => setShowSuccess(false), 3000);
+              }}
+              disabled={!customMessage.trim() || isSending}
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold rounded-lg transition-all disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSending ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Send Custom
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -1,55 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 
 export default function NotificationToast() {
   const { status } = useSession();
-  const [lastChecked, setLastChecked] = useState<string>("");
 
   useEffect(() => {
-    // Set initial check time to now so we only show NEW announcements
-    if (status === "authenticated") {
-      setLastChecked(new Date().toISOString());
-    }
-  }, [status]);
+    if (status !== "authenticated") return;
 
-  useEffect(() => {
-    if (!lastChecked || status !== "authenticated") return;
+    // Connect to SSE stream — server only pushes when admin sends a notification
+    const eventSource = new EventSource("/api/announcements/stream");
 
-    const interval = setInterval(async () => {
+    eventSource.onmessage = (event) => {
       try {
-        const res = await fetch(`/api/announcements/latest?since=${encodeURIComponent(lastChecked)}`);
-        if (!res.ok) return;
-
-        const data = await res.json();
-
-        if (data.announcements && data.announcements.length > 0) {
-          // Update lastChecked to the newest announcement time
-          setLastChecked(new Date().toISOString());
-
-          // Show notifications
-          data.announcements.forEach((ann: { message: string }) => {
-            toast(ann.message, {
-              duration: 8000,
-              style: {
-                background: "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(18, 18, 30, 0.98))",
-                border: "1px solid #ffc107",
-                color: "#fff",
-                fontSize: "0.95rem",
-              },
-              icon: "📢",
-            });
-          });
-        }
+        const announcement = JSON.parse(event.data);
+        toast(announcement.message, {
+          duration: 8000,
+          style: {
+            background: "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(18, 18, 30, 0.98))",
+            border: "1px solid #ffc107",
+            color: "#fff",
+            fontSize: "0.95rem",
+          },
+          icon: "📢",
+        });
       } catch {
-        // Silently fail
+        // Ignore parse errors
       }
-    }, 8000);
+    };
 
-    return () => clearInterval(interval);
-  }, [lastChecked, status]);
+    eventSource.onerror = () => {
+      // EventSource auto-reconnects on error
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [status]);
 
   return null; // Logic only, UI handled by Sonner Toaster in layout
 }
