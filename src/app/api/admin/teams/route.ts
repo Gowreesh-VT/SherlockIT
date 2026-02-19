@@ -3,47 +3,42 @@ import { verifyAdmin, unauthorizedResponse } from "@/lib/admin-auth";
 import dbConnect from "@/lib/db";
 import Team from "@/models/Team";
 import World from "@/models/World";
-import Progress from "@/models/Progress";
 
+// GET /api/admin/teams - Get all teams with progress
 export async function GET(req: NextRequest) {
+  try {
     if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
-    try {
-        await dbConnect();
+    await dbConnect();
 
-        const [teams, worlds] = await Promise.all([
-            Team.find({}).lean(),
-            World.find({}).sort({ order: 1 }).lean(),
-        ]);
+    const teams = await Team.find()
+      .populate("completedWorlds", "title order")
+      .sort({ createdAt: -1 })
+      .lean();
 
-        // Get progress for all teams
-        const progress = await Progress.find({}).lean();
+    const totalWorlds = await World.countDocuments();
 
-        const teamsWithProgress = teams.map((team) => {
-            const teamProgress = progress.filter(
-                (p) => p.teamId.toString() === team._id.toString()
-            );
-            const completedWorldIds = teamProgress
-                .filter((p) => p.completedAt)
-                .map((p) => p.worldId.toString());
+    const teamsWithProgress = teams.map((team) => ({
+      id: team._id,
+      teamName: team.teamName,
+      leaderEmail: team.leaderEmail,
+      membersCount: team.members?.length || 0,
+      completedWorlds: team.completedWorlds || [],
+      completedWorldsCount: team.completedWorlds?.length || 0,
+      totalWorlds,
+      progress: totalWorlds > 0
+        ? Math.round(((team.completedWorlds?.length || 0) / totalWorlds) * 100)
+        : 0,
+      finalSubmitted: team.finalSubmitted,
+      lastActive: team.updatedAt,
+    }));
 
-            return {
-                _id: team._id.toString(),
-                teamName: team.teamName,
-                leaderEmail: team.leaderEmail,
-                memberCount: team.members.length,
-                completedWorlds: completedWorldIds.length,
-                totalWorlds: worlds.length,
-                finalSubmitted: team.finalSubmitted,
-            };
-        });
-
-        return NextResponse.json({ teams: teamsWithProgress });
-    } catch (error) {
-        console.error("Admin get teams error:", error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json({ teams: teamsWithProgress, totalWorlds });
+  } catch (error) {
+    console.error("Error fetching teams:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch teams" },
+      { status: 500 }
+    );
+  }
 }

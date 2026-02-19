@@ -43,6 +43,7 @@ export async function GET() {
 
         return NextResponse.json({
             isOpen,
+            deadline: eventControl.finalAnswerDeadline || null,
             alreadySubmitted: !!existingSubmission,
             submission: existingSubmission
                 ? {

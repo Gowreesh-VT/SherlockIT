@@ -5,7 +5,6 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import NotificationToast from "@/components/NotificationToast";
 import SessionGuard from "@/components/SessionGuard";
 import {
   CheckCircle,
@@ -50,6 +49,9 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [finalDeadline, setFinalDeadline] = useState<string | null>(null);
+  const [finalCountdown, setFinalCountdown] = useState<string | null>(null);
+  const [finalOpen, setFinalOpen] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -64,6 +66,11 @@ export default function DashboardPage() {
 
     if (status === "authenticated") {
       fetchWorlds();
+      fetchFinalStatus();
+
+      // Poll final status every 15 seconds to detect when admin opens it
+      const interval = setInterval(fetchFinalStatus, 15000);
+      return () => clearInterval(interval);
     }
   }, [status, session, router]);
 
@@ -86,6 +93,49 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }
+
+  async function fetchFinalStatus() {
+    try {
+      const res = await fetch("/api/final/status");
+      if (res.ok) {
+        const data = await res.json();
+        setFinalOpen(data.isOpen);
+        setFinalDeadline(data.deadline || null);
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
+  // Countdown timer logic
+  useEffect(() => {
+    if (!finalDeadline || !finalOpen) {
+      setFinalCountdown(null);
+      return;
+    }
+
+    const tick = () => {
+      const now = Date.now();
+      const end = new Date(finalDeadline).getTime();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setFinalCountdown("00:00:00");
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setFinalCountdown(
+        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      );
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [finalDeadline, finalOpen]);
 
   const completedCount = worlds.filter((w) => w.isCompleted).length;
   const progressPercent = worlds.length > 0 ? (completedCount / worlds.length) * 100 : 0;
@@ -117,7 +167,6 @@ export default function DashboardPage() {
         fontFamily: "var(--font-rajdhani), sans-serif",
       }}
     >
-      <NotificationToast />
       <SessionGuard />
 
       {/* Cyber Grid Background */}
@@ -265,8 +314,65 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Final Submission Countdown Timer */}
+        {finalOpen && finalCountdown && (
+          <div
+            className="relative rounded-xl overflow-hidden mb-4"
+            style={{
+              border: finalCountdown === "00:00:00" ? "1px solid rgba(239, 68, 68, 0.5)" : "1px solid rgba(234, 179, 8, 0.4)",
+              background: finalCountdown === "00:00:00"
+                ? "linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05))"
+                : "linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(245, 158, 11, 0.05))",
+            }}
+          >
+            <div className="p-4 flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                style={{
+                  backgroundColor: finalCountdown.startsWith("00:0") ? "rgba(239, 68, 68, 0.2)" : "rgba(234, 179, 8, 0.15)",
+                }}
+              >
+                <svg className={`w-6 h-6 ${finalCountdown.startsWith("00:0") ? "text-red-400 animate-pulse" : "text-yellow-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p
+                  className="text-xs font-bold uppercase tracking-widest mb-1"
+                  style={{
+                    color: finalCountdown.startsWith("00:0") ? "#ef4444" : "#eab308",
+                    fontFamily: "var(--font-rajdhani), sans-serif",
+                  }}
+                >
+                  ⏰ Final Submission Closing In
+                </p>
+                <p
+                  className="text-2xl font-mono font-bold tracking-wider"
+                  style={{
+                    color: finalCountdown.startsWith("00:0") ? "#ef4444" : "#fbbf24",
+                    textShadow: finalCountdown.startsWith("00:0") ? "0 0 15px rgba(239, 68, 68, 0.5)" : "0 0 15px rgba(234, 179, 8, 0.4)",
+                  }}
+                >
+                  {finalCountdown}
+                </p>
+              </div>
+              <Link
+                href="/final"
+                className="px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider transition-all"
+                style={{
+                  backgroundColor: finalCountdown.startsWith("00:0") ? "rgba(239, 68, 68, 0.2)" : "rgba(234, 179, 8, 0.15)",
+                  border: finalCountdown.startsWith("00:0") ? "1px solid #ef4444" : "1px solid #eab308",
+                  color: finalCountdown.startsWith("00:0") ? "#ef4444" : "#eab308",
+                }}
+              >
+                Submit →
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* World Cards */}
-        <div className="space-y-6">
+        <div className="space-y-12">
           {worlds.map((world, index) => {
             const imgUrl = world.imageUrl || WORLD_IMAGES[index % WORLD_IMAGES.length];
             const isCurrent = currentWorld?._id === world._id;
@@ -416,24 +522,8 @@ export default function DashboardPage() {
                           {world.description || "Investigate this reality and solve the mystery within."}
                         </p>
 
-                        {/* Progress Bar */}
-                        <div className="w-full bg-white/10 rounded-full h-1.5 mb-2 overflow-hidden">
-                          <div
-                            className="h-1.5 rounded-full"
-                            style={{
-                              width: "33%",
-                              backgroundColor: "#06b6d4",
-                              boxShadow: "0 0 10px #06b6d4",
-                            }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-[10px] text-slate-400 font-mono uppercase">
-                          <span>Progress</span>
-                          <span>In Progress</span>
-                        </div>
-
                         <button
-                          className="w-full mt-4 font-bold py-2 rounded uppercase text-sm tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-full font-bold py-2 rounded uppercase text-sm tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer"
                           style={{
                             backgroundColor: "rgba(6, 182, 212, 0.1)",
                             border: "1px solid #06b6d4",
@@ -459,36 +549,87 @@ export default function DashboardPage() {
             }
 
             if (!world.isLocked) {
-              // Unlocked but not current — clickable
+              // Unlocked but not current — styled consistently with current mission
               return (
                 <Link href={`/world/${world._id}`} key={world._id}>
                   <div className="relative group cursor-pointer">
                     <div
-                      className="relative rounded-xl overflow-hidden transform transition-transform hover:scale-[1.02]"
+                      className="relative rounded-xl overflow-hidden shadow-neon-cyan transform transition-transform hover:scale-[1.02]"
                       style={{
                         backgroundColor: "#0a0a0a",
-                        border: "1px solid rgba(6, 182, 212, 0.3)",
+                        border: "1px solid rgba(6, 182, 212, 0.4)",
                       }}
                     >
-                      <div className="h-28 w-full relative">
+                      {/* Available Badge */}
+                      <div
+                        className="absolute top-3 right-3 z-20 flex items-center gap-1 backdrop-blur px-2 py-1 rounded"
+                        style={{
+                          backgroundColor: "rgba(0, 0, 0, 0.6)",
+                          border: "1px solid rgba(6, 182, 212, 0.3)",
+                        }}
+                      >
+                        <span className="relative flex h-2 w-2">
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider ml-1" style={{ color: "#06b6d4" }}>
+                          Available
+                        </span>
+                      </div>
+
+                      {/* Image */}
+                      <div className="h-36 w-full relative">
                         <Image
                           src={imgUrl}
                           alt={world.title}
                           fill
-                          className="object-cover opacity-70 group-hover:opacity-100 transition-opacity"
+                          className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
                       </div>
-                      <div className="p-4">
-                        <h3
-                          className="text-lg text-white mb-1"
-                          style={{ fontFamily: "var(--font-orbitron), sans-serif" }}
-                        >
-                          {world.title}
-                        </h3>
-                        <p className="text-xs text-slate-400 line-clamp-2">
+
+                      {/* Content */}
+                      <div className="p-4 relative -mt-6">
+                        <div className="flex justify-between items-end mb-2">
+                          <h3
+                            className="text-xl text-white font-bold tracking-wide"
+                            style={{ fontFamily: "var(--font-orbitron), sans-serif" }}
+                          >
+                            {world.title}
+                          </h3>
+                          <span
+                            className="text-xs font-mono px-2 py-0.5 rounded"
+                            style={{
+                              color: "#06b6d4",
+                              backgroundColor: "rgba(6, 182, 212, 0.1)",
+                              border: "1px solid rgba(6, 182, 212, 0.3)",
+                            }}
+                          >
+                            WORLD {world.order}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-300 mb-4">
                           {world.description || "A mystery awaits your investigation."}
                         </p>
+
+                        <button
+                          className="w-full font-bold py-2 rounded uppercase text-sm tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          style={{
+                            backgroundColor: "rgba(6, 182, 212, 0.1)",
+                            border: "1px solid #06b6d4",
+                            color: "#06b6d4",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#06b6d4";
+                            e.currentTarget.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "rgba(6, 182, 212, 0.1)";
+                            e.currentTarget.style.color = "#06b6d4";
+                          }}
+                        >
+                          <span>Begin Investigation</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>

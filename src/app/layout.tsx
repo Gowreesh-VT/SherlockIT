@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, Cinzel, Orbitron, Montserrat, Rajdhani } from "next/font/google";
+import { Inter, Cinzel, Orbitron, Montserrat, Rajdhani, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
+import NotificationToast from "@/components/NotificationToast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +31,14 @@ const rajdhani = Rajdhani({
   variable: "--font-rajdhani",
 });
 
+
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  weight: ["700", "800", "900"],
+});
+
 export const metadata: Metadata = {
   title: "SherlockIT 2.0 – Mystery Solving Event",
   description:
@@ -42,9 +51,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${cinzel.variable} ${orbitron.variable} ${montserrat.variable} ${rajdhani.variable}`}>
+    <html lang="en" className={`${inter.variable} ${cinzel.variable} ${orbitron.variable} ${montserrat.variable} ${rajdhani.variable} ${playfair.variable}`}>
       <body className="mystery-bg" style={{ fontFamily: "var(--font-inter), system-ui, -apple-system, sans-serif" }}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <NotificationToast />
+          {children}
+        </Providers>
         <Toaster />
       </body>
     </html>

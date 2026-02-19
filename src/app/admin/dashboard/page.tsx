@@ -38,6 +38,7 @@ export default function AdminDashboardPage() {
   const [teams, setTeams] = useState<TeamInfo[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [finalAnswerOpen, setFinalAnswerOpen] = useState(false);
+  const [submissionDuration, setSubmissionDuration] = useState(30);
   const [loading, setLoading] = useState(true);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [togglingFinal, setTogglingFinal] = useState(false);
@@ -103,7 +104,10 @@ export default function AdminDashboardPage() {
       const res = await fetch("/api/admin/event-control", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ finalAnswerOpen: !finalAnswerOpen }),
+        body: JSON.stringify({
+          finalAnswerOpen: !finalAnswerOpen,
+          ...(!finalAnswerOpen ? { durationMinutes: submissionDuration } : {}),
+        }),
       });
 
       if (res.ok) {
@@ -178,6 +182,20 @@ export default function AdminDashboardPage() {
                          {finalAnswerOpen ? "Teams can currently submit their final mystery solution." : "Final submission is currently locked."}
                      </span>
                 </div>
+                {!finalAnswerOpen && (
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border">
+                    <span className="text-sm text-muted-foreground">Timer duration:</span>
+                    <input
+                      type="number"
+                      min={5}
+                      max={180}
+                      value={submissionDuration}
+                      onChange={(e) => setSubmissionDuration(Number(e.target.value))}
+                      className="w-20 px-3 py-1.5 rounded-md border border-border bg-background text-foreground text-sm"
+                    />
+                    <span className="text-sm text-muted-foreground">minutes</span>
+                  </div>
+                )}
             </CardContent>
         </Card>
 
