@@ -13,6 +13,8 @@ export interface ITeam extends Document {
     activeSessionId: string | null;
     completedWorlds: mongoose.Types.ObjectId[];
     finalSubmitted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const TeamMemberSchema = new Schema<ITeamMember>(
