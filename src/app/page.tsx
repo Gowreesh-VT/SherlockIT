@@ -1,273 +1,156 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 
 export default function SplashPage() {
   const router = useRouter();
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const handleInitialize = () => {
     setIsTransitioning(true);
     setTimeout(() => {
       router.push("/login");
-    }, 800);
+    }, 1000);
   };
 
   return (
     <main
-      className="text-white min-h-screen overflow-hidden flex flex-col relative"
+      className="text-white min-h-screen overflow-hidden flex flex-col relative bg-[#1c1c1c]"
       style={{
-        backgroundColor: "#020205",
-        backgroundImage:
-          "radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 60%), radial-gradient(circle at 100% 100%, #2e1065 0%, transparent 50%)",
-        fontFamily: "var(--font-montserrat), sans-serif",
+        fontFamily: "var(--font-rajdhani), sans-serif",
       }}
     >
-      {/* Cyber grid background */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundSize: "40px 40px",
-          backgroundImage:
-            "linear-gradient(to right, rgba(0, 243, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(189, 0, 255, 0.05) 1px, transparent 1px)",
-          maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
-        }}
-      />
+      {/* Background with Desk & Lamp Effect */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 opacity-50"
+          style={{
+            backgroundImage: "url('/detective_bw.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "grayscale(1) contrast(1.1) brightness(0.7)",
+          }}
+        />
+        {/* Lamp Glow Overlay - Stark White for B&W */}
+        <div
+          className="absolute right-0 top-0 w-full h-full opacity-40 pointer-events-none"
+          style={{
+            background: "radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 60%)",
+          }}
+        />
+        {/* Dark Vignette */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(circle at 50% 50%, transparent 20%, rgba(0, 0, 0, 0.9) 100%)",
+          }}
+        />
+      </div>
 
-      {/* Scanlines overlay */}
+      {/* Main Content Container */}
       <div
-        className="fixed inset-0 z-0 pointer-events-none opacity-70"
-        style={{
-          background: "linear-gradient(to bottom, transparent 50%, rgba(0, 243, 255, 0.02) 50%)",
-          backgroundSize: "100% 4px",
-        }}
-      />
-
-      {/* Horizontal neon pulse lines */}
-      <div
-        className="fixed left-0 w-full h-[1px] animate-pulse"
-        style={{
-          top: "15%",
-          background: "linear-gradient(to right, transparent, rgba(0, 243, 255, 0.3), transparent)",
-        }}
-      />
-      <div
-        className="fixed left-0 w-full h-[1px] animate-pulse"
-        style={{
-          bottom: "30%",
-          background: "linear-gradient(to right, transparent, rgba(189, 0, 255, 0.3), transparent)",
-          animationDelay: "1s",
-        }}
-      />
-
-      {/* Main content */}
-      <div
-        className={`relative z-10 w-full h-full flex flex-col items-center justify-between py-12 px-6 flex-grow transition-opacity duration-700 ${
-          isTransitioning ? "opacity-0" : "opacity-100"
-        }`}
+        className={`relative z-10 w-full h-full flex flex-col items-center justify-between py-8 sm:py-12 px-4 sm:px-6 flex-grow transition-all duration-1000 ease-out ${isLoaded ? "opacity-100" : "opacity-0"
+          } ${isTransitioning ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}
       >
-        {/* Header */}
-        <header className="w-full text-center mt-8 relative">
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              backgroundColor: "rgba(0, 243, 255, 0.2)",
-              filter: "blur(100px)",
-            }}
-          />
-          <h1
-            className="font-black text-5xl md:text-6xl text-white tracking-widest leading-none relative z-10"
-            style={{
-              fontFamily: "var(--font-cinzel), serif",
-              textShadow:
-                "0 0 10px rgba(0, 243, 255, 0.7), 0 0 20px rgba(0, 243, 255, 0.5), 0 0 30px rgba(0, 243, 255, 0.3)",
-              animation: "flicker 3s linear infinite",
-            }}
-          >
-            SHERLOCK<span style={{ color: "#00f3ff" }}>IT</span>
-            <span
-              className="block text-2xl md:text-3xl mt-2 tracking-[0.5em] opacity-90"
-              style={{
-                fontFamily: "var(--font-orbitron), sans-serif",
-                color: "#bd00ff",
-                textShadow: "none",
-              }}
-            >
-              2.0
-            </span>
-          </h1>
-          <div
-            className="h-[2px] w-32 mx-auto mt-6"
-            style={{
-              background: "linear-gradient(to right, transparent, #00f3ff, transparent)",
-            }}
-          />
-        </header>
-
-        {/* Hero Image */}
-        <div className="relative w-full max-w-sm aspect-[4/5] flex items-center justify-center my-4">
-          {/* Neon border frame */}
-          <div
-            className="absolute inset-0 rounded-sm opacity-80"
-            style={{
-              background: "linear-gradient(45deg, #00f3ff, transparent 40%, transparent 60%, #bd00ff)",
-              padding: "1px",
-            }}
-          >
-            <div
-              className="absolute inset-[1px] rounded-sm overflow-hidden"
-              style={{ backgroundColor: "rgba(3, 0, 5, 0.9)" }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt="Detective Silhouette"
-                className="w-full h-full object-cover"
-                style={{
-                  opacity: 0.6,
-                  filter: "grayscale(1) brightness(0.75) contrast(1.25)",
-                  mixBlendMode: "luminosity",
-                  maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-                }}
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4uBG6J-fNcv5ySXf3ZqFhVMQssrEHHKY2FYSxo2bL0Hdggyxu2Vw75afEINXoNNOfEfhWN0OfhvKfIeqAk0QHXIuWdYyVH-onGTrKmVfS0elwC-vnrQUTbgeS9bqr8WZ_zwstziWHTxuuBNP9D022WsNiaHt4zzaysI3DxiFnhPMMSbCGG27ZlZxfQLBcWTo01mFB1HSH1AZzH0FqmFDn1iwP-UG3CF8ZR72ri1kFNQLjsnTXOcNWd0WAXzgBtYvtou0hLRdIUQ"
-              />
-
-              {/* Color overlay */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(to top, rgba(189, 0, 255, 0.2), transparent, rgba(0, 243, 255, 0.1))",
-                  mixBlendMode: "overlay",
-                }}
-              />
-
-              {/* Inner glow */}
-              <div
-                className="absolute inset-0"
-                style={{ boxShadow: "inset 0 0 50px rgba(0, 243, 255, 0.15)" }}
-              />
-
-              {/* MULTIVERSE text */}
-              <div
-                className="absolute left-0 w-full text-center"
-                style={{
-                  bottom: "25%",
-                  transform: "rotate(-6deg)",
-                  opacity: 0.8,
-                  mixBlendMode: "screen",
-                }}
-              >
-                <span
-                  className="text-4xl font-bold text-transparent bg-clip-text"
-                  style={{
-                    fontFamily: "var(--font-orbitron), sans-serif",
-                    backgroundImage: "linear-gradient(to right, #00f3ff, white, #00f3ff)",
-                    filter: "blur(0.5px)",
-                  }}
-                >
-                  MULTIVERSE
-                </span>
-              </div>
+        {/* Top Section */}
+        <div className="w-full flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 sm:gap-0 pointer-events-none">
+          {/* CLASSIFIED STAMP */}
+          <div className="relative transform sm:-rotate-12 mt-2 sm:mt-4">
+            <div className="border-[2px] sm:border-[3px] border-red-800/80 px-3 sm:px-4 py-1 sm:py-1.5 rounded-sm">
+              <span className="text-xl sm:text-2xl md:text-3xl font-black text-red-800/80 tracking-[0.2em] uppercase italic" style={{ fontFamily: "Arial, sans-serif" }}>
+                CLASSIFIED
+              </span>
             </div>
+            {/* Double Border Effect */}
+            <div className="absolute -inset-1 border border-red-800/40 rounded-sm" />
           </div>
 
-          {/* Side accent bars */}
-          <div
-            className="absolute w-1 h-16"
-            style={{ left: "-8px", top: "40px", backgroundColor: "rgba(189, 0, 255, 0.5)" }}
-          />
-          <div
-            className="absolute w-1 h-16"
-            style={{ right: "-8px", bottom: "40px", backgroundColor: "rgba(0, 243, 255, 0.5)" }}
-          />
+          {/* Technical Metadata Overlay */}
+          <div className="text-[9px] sm:text-[10px] text-cyan-500/80 tracking-[0.15em] sm:tracking-widest text-center sm:text-right leading-relaxed mt-1 sm:mt-2" style={{ fontFamily: "monospace" }}>
+            <div>LOC: 51.5074° N, 0.1278° W</div>
+            <div className="hidden xs:block">SYS_ST: ENGAGED</div>
+            <div>ENC: RSA_4096_SHA256</div>
+            <div className="hidden sm:block">HEX: 0x53 0x48 0x45 0x4C</div>
+          </div>
         </div>
 
-        {/* Footer */}
-        <footer className="w-full text-center pb-8 flex flex-col items-center gap-6 relative z-20">
-          <div className="flex flex-col items-center space-y-3">
-            <div className="flex items-center gap-3 opacity-80">
-              <div
-                className="w-2 h-2 rounded-full animate-pulse"
-                style={{ backgroundColor: "#00f3ff" }}
-              />
-              <p
-                className="text-xl md:text-2xl text-white tracking-[0.2em] font-medium uppercase"
-                style={{
-                  fontFamily: "var(--font-orbitron), sans-serif",
-                  filter: "drop-shadow(0 0 5px rgba(255, 255, 255, 0.5))",
-                }}
-              >
-                Case Open
-              </p>
-              <div
-                className="w-2 h-2 rounded-full animate-pulse"
-                style={{ backgroundColor: "#00f3ff" }}
-              />
-            </div>
-            <p
-              className="text-xs tracking-widest uppercase"
+        {/* Center Section: SHERLOCKIT 2.0 */}
+        <div className="relative flex flex-col items-center w-full max-w-[90vw]">
+          {/* Vertical Side Borders - Responsive positioning */}
+          <div className="absolute left-[-10px] sm:left-[-20px] top-[-10px] bottom-[-10px] w-[1px] bg-cyan-500/40" />
+          <div className="absolute right-[-10px] sm:right-[-20px] top-[-10px] bottom-[-10px] w-[1px] bg-cyan-500/40" />
+
+          <header className="text-center relative w-full">
+            <h1
+              className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl font-bold tracking-[0.1em] sm:tracking-[0.15em] text-white flex flex-col items-center transition-all"
               style={{
-                color: "#94a3b8",
-                fontFamily: "var(--font-montserrat), sans-serif",
+                fontFamily: "var(--font-rajdhani), sans-serif",
+                textShadow: "0 0 15px rgba(255, 255, 255, 0.3)",
               }}
             >
-              System Online // Awaiting Input
+              SHERLOCKIT
+              <span
+                className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl text-cyan-400 mt-1 block"
+                style={{
+                  textShadow: "0 0 12px rgba(34, 211, 238, 0.8)",
+                }}
+              >
+                2.0
+              </span>
+            </h1>
+
+            <p className="mt-6 sm:mt-8 text-[9px] sm:text-[11px] font-medium tracking-[0.3em] sm:tracking-[0.4em] text-cyan-400/90 uppercase text-center w-full max-w-[240px] sm:max-w-[320px] mx-auto">
+              Divide the Clues, Conquer the Worlds.
             </p>
+          </header>
+        </div>
+
+        {/* Footer Section */}
+        <footer className="w-full flex flex-col items-center gap-6 sm:gap-8 mb-2 sm:mb-4">
+          <div className="w-full text-center sm:text-right pointer-events-none mb-1 sm:mb-2">
+            <span className="text-[8px] sm:text-[9px] text-white/40 tracking-[0.2em] font-mono">SECURE_NODE_04</span>
           </div>
 
-          {/* INITIALIZE button */}
+          {/* INITIALIZE BUTTON */}
           <button
             onClick={handleInitialize}
-            className="group relative px-8 py-4 bg-transparent overflow-hidden rounded transition-all duration-300 hover:scale-105 cursor-pointer"
+            className="w-full max-w-[280px] sm:max-w-[320px] group relative py-3 sm:py-4 bg-transparent transition-all duration-300 active:scale-95"
           >
-            <div
-              className="absolute inset-0 transition-colors duration-500"
-              style={{
-                border: "1px solid rgba(189, 0, 255, 0.5)",
-                boxShadow: "0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(189, 0, 255, 0.1)",
-              }}
-            />
-            <div
-              className="absolute inset-0 transition-colors duration-500"
-              style={{ backgroundColor: "rgba(189, 0, 255, 0.05)" }}
-            />
-            <div className="relative flex items-center gap-3">
+            {/* Cyan Border Frame */}
+            <div className="absolute inset-0 border border-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.3)] transition-all group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] group-hover:border-cyan-400" />
+
+            {/* Button Content */}
+            <div className="relative flex items-center justify-center">
               <span
-                className="text-sm tracking-widest text-white group-hover:text-cyan-400 transition-colors"
+                className="text-base sm:text-lg tracking-[0.4em] sm:tracking-[0.6em] font-bold text-cyan-400 group-hover:text-white transition-colors"
                 style={{ fontFamily: "var(--font-orbitron), sans-serif" }}
               >
                 INITIALIZE
               </span>
-              <ArrowRight className="w-4 h-4 text-purple-500 group-hover:text-cyan-400 transition-colors" />
             </div>
           </button>
+
+          {/* Technical Metadata Footer */}
+          <div className="flex flex-col sm:flex-row justify-between items-center w-full text-[8px] sm:text-[9px] text-white/30 tracking-[0.1em] sm:tracking-[0.2em] font-mono mt-4 gap-2 sm:gap-0">
+            <div className="flex gap-4">
+              <span>KERNEL_V: 2.0.4-SH</span>
+              <span>BUILD: 88A-X9</span>
+            </div>
+            <span>© MICROSOFT INNOVATION CLUB</span>
+          </div>
         </footer>
       </div>
 
-      {/* Bottom fade */}
-      <div
-        className="fixed bottom-0 left-0 w-full h-32 pointer-events-none z-0"
-        style={{
-          background: "linear-gradient(to top, #020205, rgba(2, 2, 5, 0.8), transparent)",
-        }}
-      />
-
-      {/* Transition overlay */}
-      <div
-        className={`fixed inset-0 z-50 pointer-events-none transition-opacity duration-700 ${
-          isTransitioning ? "opacity-100" : "opacity-0"
-        }`}
-        style={{ backgroundColor: "#020205" }}
-      />
-
+      {/* Global Style */}
       <style jsx global>{`
-        @keyframes flicker {
-          0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 0.99; }
-          20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+        body {
+          background-color: #000;
         }
       `}</style>
     </main>
