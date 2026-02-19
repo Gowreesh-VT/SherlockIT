@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdmin, unauthorizedResponse } from "@/lib/admin-auth";
 import dbConnect from "@/lib/db";
 import World from "@/models/World";
 
 // GET /api/admin/worlds - Get all worlds
 export async function GET(req: NextRequest) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== process.env.ADMIN_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     await dbConnect();
 
@@ -37,10 +35,7 @@ export async function GET(req: NextRequest) {
 // POST /api/admin/worlds - Create a new world
 export async function POST(req: NextRequest) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== process.env.ADMIN_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     await dbConnect();
 
@@ -79,10 +74,7 @@ export async function POST(req: NextRequest) {
 // PATCH /api/admin/worlds - Bulk operations (lock all / unlock all)
 export async function PATCH(req: NextRequest) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== process.env.ADMIN_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     await dbConnect();
 

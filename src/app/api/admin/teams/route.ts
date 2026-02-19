@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdmin, unauthorizedResponse } from "@/lib/admin-auth";
 import dbConnect from "@/lib/db";
 import Team from "@/models/Team";
 import World from "@/models/World";
@@ -6,10 +7,7 @@ import World from "@/models/World";
 // GET /api/admin/teams - Get all teams with progress
 export async function GET(req: NextRequest) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== process.env.ADMIN_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     await dbConnect();
 
@@ -28,8 +26,8 @@ export async function GET(req: NextRequest) {
       completedWorlds: team.completedWorlds || [],
       completedWorldsCount: team.completedWorlds?.length || 0,
       totalWorlds,
-      progress: totalWorlds > 0 
-        ? Math.round(((team.completedWorlds?.length || 0) / totalWorlds) * 100) 
+      progress: totalWorlds > 0
+        ? Math.round(((team.completedWorlds?.length || 0) / totalWorlds) * 100)
         : 0,
       finalSubmitted: team.finalSubmitted,
       lastActive: team.updatedAt,

@@ -23,7 +23,7 @@ export async function adminFetch<T>(
   options: RequestInit = {}
 ): Promise<{ data?: T; error?: string }> {
   const adminKey = getAdminKey();
-  
+
   if (!adminKey) {
     return { error: 'No admin key configured. Please set it in settings.' };
   }
@@ -153,10 +153,30 @@ export async function fetchSubmissions() {
       teamId: string;
       teamName: string;
       leaderEmail: string;
-      answer: string;
+      realWorld: string;
+      villain: string;
+      weapon: string;
       submittedAt: string;
+      realWorldCorrect: boolean;
+      villainCorrect: boolean;
+      weaponCorrect: boolean;
+      score: number;
+      isWinner: boolean;
     }>;
     totalSubmissions: number;
+    hasCorrectAnswers: boolean;
+    correctAnswers: {
+      realWorld: string;
+      villain: string;
+      weapon: string;
+    } | null;
+    winners: Array<{
+      id: string;
+      teamName: string;
+      leaderEmail: string;
+      submittedAt: string;
+      score: number;
+    }>;
   }>('/api/admin/submissions');
 }
 

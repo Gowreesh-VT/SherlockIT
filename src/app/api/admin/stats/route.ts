@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdmin, unauthorizedResponse } from "@/lib/admin-auth";
 import dbConnect from "@/lib/db";
 import Team from "@/models/Team";
 import World from "@/models/World";
@@ -8,10 +9,7 @@ import FinalSubmission from "@/models/FinalSubmission";
 // GET /api/admin/stats - Dashboard statistics
 export async function GET(req: NextRequest) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== process.env.ADMIN_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     await dbConnect();
 

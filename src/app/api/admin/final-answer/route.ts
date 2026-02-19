@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdmin, unauthorizedResponse } from "@/lib/admin-auth";
 import dbConnect from "@/lib/db";
 import EventControl from "@/models/EventControl";
 
@@ -17,10 +18,7 @@ async function getEventControl() {
 // GET /api/admin/final-answer - Get final answer status
 export async function GET(req: NextRequest) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== process.env.ADMIN_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     await dbConnect();
 
@@ -42,10 +40,7 @@ export async function GET(req: NextRequest) {
 // POST /api/admin/final-answer - Toggle final answer status
 export async function POST(req: NextRequest) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== process.env.ADMIN_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     await dbConnect();
 

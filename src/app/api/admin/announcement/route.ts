@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin, unauthorizedResponse } from "@/lib/admin-auth";
 import dbConnect from "@/lib/db";
 import Announcement from "@/models/Announcement";
+import { announcementEmitter } from "@/lib/announcement-emitter";
 
 const TEMPLATES: Record<string, string> = {
     "welcome": "🕵️ Welcome to SherlockIT 2.0! The mystery begins now. Good luck, detectives!",
@@ -29,17 +30,9 @@ const TEMPLATE_LIST = [
     { id: "last-world", label: "🌟 Last World", message: TEMPLATES["last-world"] },
 ];
 
-// Authenticate via either JWT cookie (admin dashboard) or API key (external admin panel)
-async function isAuthed(req: NextRequest): Promise<boolean> {
-    // Check cookie first
-    if (await verifyAdmin(req)) return true;
-    // Fallback to API key header
-    const adminKey = req.headers.get("x-admin-key");
-    return adminKey === process.env.ADMIN_API_KEY;
-}
-
+// Use verifyAdmin which handles both JWT cookie and API key
 export async function POST(req: NextRequest) {
-    if (!(await isAuthed(req))) return unauthorizedResponse();
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
 
     try {
         const { message, templateId } = await req.json();
@@ -66,6 +59,13 @@ export async function POST(req: NextRequest) {
         await dbConnect();
         const announcement = await Announcement.create({ message: announcementMessage });
 
+        // Push to all connected SSE clients
+        announcementEmitter.emit({
+            _id: announcement._id.toString(),
+            message: announcement.message,
+            createdAt: announcement.createdAt.toISOString(),
+        });
+
         return NextResponse.json({
             success: true,
             announcement: {
@@ -81,6 +81,6 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-    if (!(await isAuthed(req))) return unauthorizedResponse();
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
     return NextResponse.json({ templates: TEMPLATE_LIST });
 }
