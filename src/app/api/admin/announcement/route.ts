@@ -84,3 +84,16 @@ export async function GET(req: NextRequest) {
     if (!(await verifyAdmin(req))) return unauthorizedResponse();
     return NextResponse.json({ templates: TEMPLATE_LIST });
 }
+
+export async function DELETE(req: NextRequest) {
+    if (!(await verifyAdmin(req))) return unauthorizedResponse();
+
+    try {
+        await dbConnect();
+        await Announcement.deleteMany({});
+        return NextResponse.json({ message: "All announcements cleared" });
+    } catch (error) {
+        console.error("Clear announcements error:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+}
