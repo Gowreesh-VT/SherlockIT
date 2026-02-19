@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { sendAnnouncement, getAdminKey, adminFetch } from '@/lib/adminApi';
 
 interface Announcement {
-  id: string;
+  _id: string;
   message: string;
   createdAt: string;
 }
@@ -57,7 +57,7 @@ export default function AnnouncementsPage() {
     }
 
     const newAnnouncement: Announcement = {
-      id: `a${Date.now()}`,
+      _id: `a${Date.now()}`,
       message: templates[selectedTemplate].text,
       createdAt: new Date().toISOString(),
     };
@@ -71,7 +71,7 @@ export default function AnnouncementsPage() {
   };
 
   const handleDelete = (id: string) => {
-    setAnnouncements(announcements.filter(a => a.id !== id));
+    setAnnouncements(announcements.filter(a => a._id !== id));
   };
 
   const formatDate = (date: string) => {      
@@ -213,7 +213,7 @@ export default function AnnouncementsPage() {
           <div className="divide-y divide-slate-800">
             {announcements.map((announcement) => (
               <div
-                key={announcement.id}
+                key={announcement._id}
                 className="group px-6 py-4 flex items-start gap-4 hover:bg-slate-800/30 transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">
@@ -226,7 +226,7 @@ export default function AnnouncementsPage() {
                   <p className="text-slate-500 text-sm mt-1">{formatDate(announcement.createdAt)}</p>
                 </div>
                 <button
-                  onClick={() => handleDelete(announcement.id)}
+                  onClick={() => handleDelete(announcement._id)}
                   className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                   title="Delete announcement"
                 >
