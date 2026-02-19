@@ -12,7 +12,6 @@ const navItems = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/announcements', label: 'Announcements' },
   { href: '/admin/worlds', label: 'Worlds' },
-  { href: '/admin/final-answer', label: 'Final Answer' },
   { href: '/admin/progress', label: 'Progress' },
   { href: '/admin/submissions', label: 'Submissions' },
 ];
