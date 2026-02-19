@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SherlockIT - Multiverse Edition</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&amp;family=Orbitron:wght@400;700;900&amp;family=Rajdhani:wght@300;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#06b6d4", // Cyan-500 for that glowing effect
+              secondary: "#8b5cf6", // Violet for the multiverse feel
+              "background-light": "#0f172a", // Dark slate for light mode base (cyber noir usually dark)
+              "background-dark": "#020617", // Even darker for dark mode
+              "glass-border": "rgba(255, 255, 255, 0.1)",
+              "glass-bg": "rgba(15, 23, 42, 0.6)",
+            },
+            fontFamily: {
+              display: ['"Orbitron"', 'sans-serif'], // Cybernetic feel
+              body: ['"Rajdhani"', 'sans-serif'], // Technical/futuristic feel
+              serif: ['"Cinzel"', 'serif'], // Detective/Mystery feel
+            },
+            backgroundImage: {
+              'fractured-glass': "url('https://images.unsplash.com/photo-1594917666245-77983617307f?q=80&w=2673&auto=format&fit=crop')", // Abstract fractured dark background
+            },
+            boxShadow: {
+              'glow': '0 0 15px rgba(6, 182, 212, 0.5)',
+              'glow-input': '0 0 10px rgba(6, 182, 212, 0.3), inset 0 0 5px rgba(6, 182, 212, 0.1)',
+            },
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'glitch': 'glitch 1s linear infinite',
+            },
+            keyframes: {
+              glitch: {
+                '2%, 64%': { transform: 'translate(2px,0) skew(0deg)' },
+                '4%, 60%': { transform: 'translate(-2px,0) skew(0deg)' },
+                '62%': { transform: 'translate(0,0) skew(5deg)' },
+              }
+            }
+          },
+        },
+      };
+    </script>
+<style>
+        body {
+            background-color: #020617;}::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #06b6d4; 
+            border-radius: 3px;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .text-glow {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-white min-h-screen font-body relative overflow-x-hidden antialiased">
+<div class="fixed inset-0 z-0 opacity-40 mix-blend-overlay">
+<img alt="Abstract fractured glass background" class="w-full h-full object-cover grayscale brightness-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANwswPUiSVKCr-aVrjdoBUM4McbprJq9ypvzuekIYPjhw-JTjLpsQ_mmERzF-3YTJAFwwrRJlONsUDvrFhzzpxbjVLK5_h7GsI1fHpNYR4uuqUFVyCVQkxHL5w_rW8ob95ZvaLxTBJ4DpREbwmonzX3YRnyixunvKJ6NScrsG1kECs0RWNCtE3-yGgiwOHNJt0UMETxdUKCi3viZaTv_MKVMAwAUo4MlDU9oE0EFCfA0COqE0DjgCNOFeZZhaIUryUhJOq8E16DQ"/>
+</div>
+<div class="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-background-dark/80 to-background-dark pointer-events-none"></div>
+<main class="relative z-10 max-w-md mx-auto min-h-screen flex flex-col px-5 pb-8 pt-6">
+<header class="flex justify-between items-center mb-8">
+<button class="p-2 rounded-full glass-panel hover:bg-white/10 transition-colors group">
+<span class="material-icons-round text-primary group-hover:text-white transition-colors">arrow_back</span>
+</button>
+<div class="flex items-center space-x-2">
+<span class="material-icons-round text-primary text-sm animate-pulse">wifi_tethering</span>
+<span class="text-xs font-display tracking-widest text-gray-400 uppercase">System Online</span>
+</div>
+<button class="p-2 rounded-full glass-panel hover:bg-white/10 transition-colors group relative">
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+<span class="material-icons-round text-gray-300 group-hover:text-white transition-colors">notifications</span>
+</button>
+</header>
+<section class="mb-6 text-center relative">
+<div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-48 h-48 bg-primary/20 rounded-full blur-3xl -z-10"></div>
+<h2 class="text-xs font-display text-primary tracking-[0.3em] uppercase mb-2">Sector 4 // Reality C-137</h2>
+<h1 class="text-4xl font-display font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-white drop-shadow-[0_0_10px_rgba(6,182,212,0.5)] mb-2">
+                STRANGER <br/> <span class="text-primary text-glow">REALMS</span>
+</h1>
+<div class="h-0.5 w-24 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent opacity-70"></div>
+</section>
+<div class="mb-8 flex items-center justify-between text-xs text-gray-400 font-display">
+<span>Progress</span>
+<div class="flex-1 mx-4 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+<div class="h-full bg-gradient-to-r from-secondary to-primary w-2/3 shadow-glow rounded-full"></div>
+</div>
+<span class="text-primary">66%</span>
+</div>
+<section class="mb-8 relative group">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-secondary to-primary rounded-xl opacity-30 blur group-hover:opacity-50 transition duration-500"></div>
+<div class="relative glass-panel rounded-xl p-6 border-l-4 border-l-secondary">
+<div class="flex items-start mb-3">
+<span class="material-icons-round text-secondary mr-2 text-lg mt-1">record_voice_over</span>
+<h3 class="text-lg font-serif font-bold text-white tracking-wide">The Upside Down Transmission</h3>
+</div>
+<div class="font-body text-gray-300 leading-relaxed text-lg space-y-4">
+<p>
+                        "Detectives, the fabric of reality here is... <span class="text-red-400 italic font-bold">fractured</span>. We've intercepted a signal from the Hawkins Lab ruins. It's not Morse code, it's something older."
+                    </p>
+<p>
+                        A flickering monitor shows a sequence of numbers etched into the wall of the Void. <span class="text-primary">Eleven</span> tried to warn us. The gate isn't just closed; it's been locked with a cipher.
+                    </p>
+</div>
+</div>
+</section>
+<section class="flex-1 flex flex-col justify-end pb-4">
+<div class="glass-panel rounded-2xl p-6 mb-6 relative overflow-hidden border border-white/10 shadow-2xl">
+<div class="absolute top-0 right-0 p-3 opacity-20">
+<span class="material-icons-round text-6xl text-primary transform rotate-12">extension</span>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary via-primary to-transparent"></div>
+<div class="relative z-10">
+<h4 class="text-sm font-display text-primary mb-2 uppercase tracking-wider flex items-center">
+<span class="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
+                        Cipher Challenge
+                    </h4>
+<p class="text-xl font-medium text-white mb-4 font-serif">
+                        Decipher the numeric sequence found in the Void. What is the sum of the prime numbers hidden in the coordinates?
+                    </p>
+<div class="flex justify-end">
+<button class="text-xs text-gray-400 hover:text-white flex items-center transition-colors group">
+<span class="material-icons-round text-sm mr-1 group-hover:text-primary transition-colors">tips_and_updates</span>
+                            Need a hint? (-50 pts)
+                        </button>
+</div>
+</div>
+</div>
+<form class="space-y-4 relative" onsubmit="event.preventDefault();">
+<div class="relative group">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-cyan-600 rounded-lg blur opacity-40 group-hover:opacity-100 transition duration-500 animate-pulse-slow"></div>
+<div class="relative bg-background-dark rounded-lg flex items-center border border-primary/50 shadow-glow-input">
+<span class="pl-4 material-icons-round text-gray-500 group-focus-within:text-primary transition-colors">key</span>
+<input class="w-full bg-transparent border-0 text-white placeholder-gray-600 focus:ring-0 focus:outline-none py-4 px-3 font-display tracking-widest uppercase text-lg" placeholder="ENTER DECRYPTION KEY..." type="text"/>
+</div>
+</div>
+<button class="w-full relative overflow-hidden group rounded-lg p-[1px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-dark" type="submit">
+<span class="absolute inset-0 w-full h-full bg-gradient-to-r from-primary via-secondary to-primary opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
+<span class="relative block w-full bg-background-dark/50 group-hover:bg-transparent transition-colors duration-300 rounded-lg py-4">
+<span class="relative flex items-center justify-center font-display font-bold tracking-widest uppercase text-white group-hover:text-glow transition-all">
+                            Decrypt &amp; Submit
+                            <span class="material-icons-round ml-2 group-hover:translate-x-1 transition-transform">send</span>
+</span>
+<span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0 h-0 bg-white opacity-10 rounded-full group-active:w-96 group-active:h-96 transition-all duration-500 ease-out"></span>
+</span>
+</button>
+</form>
+</section>
+<footer class="mt-4 flex justify-between items-end text-[10px] text-gray-600 font-display uppercase tracking-widest border-t border-gray-800 pt-3">
+<div>
+<span class="block text-gray-500">Server</span>
+<span class="text-primary">Online</span>
+</div>
+<div class="text-right">
+<span class="block text-gray-500">ID</span>
+<span>#SH-992-MV</span>
+</div>
+</footer>
+</main>
+<div class="fixed top-20 left-4 w-1 h-1 bg-white rounded-full animate-ping opacity-20"></div>
+<div class="fixed bottom-40 right-8 w-1 h-1 bg-primary rounded-full animate-ping delay-700 opacity-20"></div>
+<div class="fixed top-1/3 right-4 w-24 h-px bg-gradient-to-l from-primary/30 to-transparent rotate-45 pointer-events-none"></div>
+<div class="fixed bottom-1/4 left-0 w-32 h-px bg-gradient-to-r from-secondary/30 to-transparent -rotate-12 pointer-events-none"></div>
+
+</body></html>

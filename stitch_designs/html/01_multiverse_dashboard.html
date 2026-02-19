@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SherlockIT - Multiverse Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&amp;family=Orbitron:wght@400;500;700;900&amp;family=Rajdhani:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#06b6d4", // Cyan for primary actions/glows
+                        "background-light": "#0f172a", // Dark blue-grey for light mode fallback (still dark themed)
+                        "background-dark": "#000000", // Deep black for true dark mode
+                        "card-dark": "#0a0a0a",
+                        "accent-gold": "#ffd700",
+                        "accent-completed": "#10b981",
+                    },
+                    fontFamily: {
+                        display: ["Orbitron", "sans-serif"],
+                        body: ["Rajdhani", "sans-serif"],
+                        serif: ["Cinzel", "serif"],
+                    },
+                    backgroundImage: {
+                        'cyber-grid': "radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.1) 0%, rgba(0, 0, 0, 0) 50%), repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(6, 182, 212, 0.05) 50px), repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(6, 182, 212, 0.05) 50px)",
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 5px #06b6d4, 0 0 10px #06b6d4, 0 0 20px rgba(6, 182, 212, 0.5)',
+                        'neon-gold': '0 0 5px #ffd700, 0 0 10px #ffd700',
+                        'neon-green': '0 0 5px #10b981, 0 0 15px rgba(16, 185, 129, 0.4)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        .glitch-text {
+            position: relative;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(13px, 9999px, 81px, 0); }
+            5% { clip: rect(69px, 9999px, 86px, 0); }
+            10% { clip: rect(2px, 9999px, 11px, 0); }
+            15% { clip: rect(98px, 9999px, 5px, 0); }
+            20% { clip: rect(33px, 9999px, 6px, 0); }
+            100% { clip: rect(63px, 9999px, 50px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(65px, 9999px, 91px, 0); }
+            5% { clip: rect(2px, 9999px, 16px, 0); }
+            10% { clip: rect(88px, 9999px, 35px, 0); }
+            15% { clip: rect(5px, 9999px, 55px, 0); }
+            20% { clip: rect(23px, 9999px, 2px, 0); }
+            100% { clip: rect(13px, 9999px, 80px, 0); }
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(6, 182, 212, 0.2);
+            position: absolute;
+            z-index: 50;
+            top: 0;
+            left: 0;
+            animation: scanline 6s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes scanline {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-200 min-h-screen relative overflow-x-hidden font-body selection:bg-primary selection:text-black">
+<div class="fixed inset-0 z-0 bg-cyber-grid opacity-30 pointer-events-none"></div>
+<div class="fixed inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&amp;w=2072&amp;auto=format&amp;fit=crop')] bg-cover bg-center opacity-10 pointer-events-none mix-blend-overlay"></div>
+<div class="scanline"></div>
+<header class="fixed top-0 w-full z-40 bg-background-dark/80 backdrop-blur-md border-b border-white/10 px-4 py-3 flex justify-between items-center shadow-lg">
+<button class="text-white hover:text-primary transition-colors focus:outline-none">
+<span class="material-icons text-3xl">menu</span>
+</button>
+<div class="flex flex-col items-center">
+<h1 class="font-display font-bold text-lg tracking-widest text-white glitch-text" data-text="SHERLOCK IT">SHERLOCK IT</h1>
+<span class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold">Multiverse Edition</span>
+</div>
+<button class="relative group focus:outline-none">
+<span class="material-icons-outlined text-white text-3xl group-hover:text-accent-gold transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent-gold rounded-full animate-ping"></span>
+<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent-gold rounded-full shadow-neon-gold border border-black"></span>
+</button>
+</header>
+<main class="relative z-10 pt-24 pb-24 px-4 max-w-lg mx-auto flex flex-col gap-6">
+<div class="bg-card-dark/50 border border-primary/30 rounded-lg p-3 flex justify-between items-center backdrop-blur-sm">
+<div class="flex items-center gap-2">
+<span class="material-icons text-primary text-sm">account_circle</span>
+<span class="text-xs font-bold text-slate-300">DETECTIVE <span class="text-white">ROSHINI</span></span>
+</div>
+<div class="flex items-center gap-3 text-xs font-mono">
+<span class="text-slate-400">SCORE: <span class="text-primary font-bold text-sm">850</span></span>
+<span class="w-px h-3 bg-white/20"></span>
+<span class="text-slate-400">RANK: <span class="text-accent-gold font-bold text-sm">#4</span></span>
+</div>
+</div>
+<div class="flex items-end justify-between border-b border-white/10 pb-2">
+<h2 class="font-display text-xl text-white tracking-wider">WORLDS</h2>
+<span class="text-xs text-slate-400 font-mono mb-1">Select a reality</span>
+</div>
+<div class="space-y-6">
+<div class="relative group cursor-pointer">
+<div class="absolute inset-0 bg-accent-completed/10 rounded-xl blur-md group-hover:bg-accent-completed/20 transition-all duration-500"></div>
+<div class="relative bg-card-dark border border-accent-completed/50 rounded-xl overflow-hidden shadow-neon-green transform transition-transform hover:scale-[1.02]">
+<div class="absolute top-3 right-3 z-20 flex items-center gap-1 bg-black/60 backdrop-blur px-2 py-1 rounded border border-accent-completed/30">
+<span class="material-icons text-accent-completed text-sm">check_circle</span>
+<span class="text-[10px] text-accent-completed font-bold uppercase tracking-wider">Solved</span>
+</div>
+<div class="h-32 w-full relative">
+<img alt="Stranger Things Vibes" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7bffefVZVKbRFlknSI2PQr5PdnkO-fGj1m1NYqVmJKbXMV4V96feJiN3YcCsKhc4jl-t1es_vPfDLVRwW84Be-gjB8lkffOXfDnOBPGSGKXK6gT-C2A6bEOAlj07Cc_davCScv8OeDbWqoWafUHJzDmZJpIIy_OvoW-Eea4hTmCQ0FKdzqY9SYjUAWFOJjZnFE4Gy6teJnv63dYHHFFnKBouNu9R0uaN29bJb3iaECKGZAi_Lgxj1Mnh5FOa3CshXZAG493v0fQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+</div>
+<div class="p-4 relative">
+<h3 class="font-display text-lg text-white mb-1">Stranger Things</h3>
+<p class="text-xs text-slate-400 font-body mb-3 line-clamp-2">The Upside Down has merged with reality. The Demogorgon leaves traces only a true detective can see.</p>
+<div class="flex items-center justify-between mt-2">
+<span class="text-[10px] bg-white/5 px-2 py-1 rounded text-slate-300 border border-white/10">Diff: Hard</span>
+<span class="text-xs text-accent-completed font-mono">100% Complete</span>
+</div>
+</div>
+</div>
+</div>
+<div class="relative group cursor-pointer">
+<div class="absolute inset-0 bg-primary/20 rounded-xl blur-lg animate-pulse"></div>
+<div class="relative bg-card-dark border-2 border-primary rounded-xl overflow-hidden shadow-neon-cyan transform transition-transform hover:scale-[1.02]">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary shadow-[0_0_10px_#06b6d4]"></div>
+<div class="absolute top-3 right-3 z-20 flex items-center gap-1 bg-black/60 backdrop-blur px-2 py-1 rounded border border-primary/50">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping absolute"></span>
+<span class="w-2 h-2 rounded-full bg-primary relative"></span>
+<span class="text-[10px] text-primary font-bold uppercase tracking-wider ml-1">Live</span>
+</div>
+<div class="h-36 w-full relative">
+<img alt="Marvel Universe" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQjiBSAbg51agRmM5soz_ciIB_WxdEifNJTje6_Q3y8aNw8ubE8TX1dih2_EC4svbLbAWHrZ3ckL6E893GD42PmQXDY_zfsEMmlXAN787np5HwYQlraHVcjxCLjFE6NKEnjqWb5G_kuRlECRtcM9GBDf92_oIxbr1oYoon5zvPHDipo7t1hdN7aMLKZcitypfHKk9Fbjd11mOpCyXGXrJJqsfYD0piM_SFVVFTxb4Au8QPtVBDJefom382JdzWY_mW1OV3UIjssw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-card-dark via-transparent to-transparent"></div>
+</div>
+<div class="p-4 relative -mt-6">
+<div class="flex justify-between items-end mb-2">
+<h3 class="font-display text-xl text-white font-bold tracking-wide drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">Marvel Cinematic</h3>
+<span class="text-xs text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/30">CURRENT MISSION</span>
+</div>
+<p class="text-sm text-slate-300 font-body mb-4">The multiverse is fractured. Someone has stolen the Time Stone. Use the clues scattered across timelines.</p>
+<div class="w-full bg-white/10 rounded-full h-1.5 mb-2 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full w-2/3 shadow-[0_0_10px_#06b6d4]"></div>
+</div>
+<div class="flex justify-between text-[10px] text-slate-400 font-mono uppercase">
+<span>Progress</span>
+<span>66%</span>
+</div>
+<button class="w-full mt-4 bg-primary/10 hover:bg-primary/20 border border-primary text-primary font-bold py-2 rounded uppercase text-sm tracking-widest transition-all hover:shadow-neon-cyan flex items-center justify-center gap-2 group-hover:text-white group-hover:bg-primary">
+<span>Resume Investigation</span>
+<span class="material-icons text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative group select-none">
+<div class="relative bg-card-dark/60 border border-white/5 rounded-xl overflow-hidden backdrop-blur-sm grayscale opacity-70">
+<div class="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3">
+<div class="p-3 bg-black/50 rounded-full border border-white/10 shadow-lg">
+<span class="material-icons text-slate-400 text-3xl">lock</span>
+</div>
+<div class="text-center">
+<span class="text-xs font-display text-slate-300 tracking-widest uppercase block mb-1">Locked Reality</span>
+<span class="text-[10px] text-slate-500 font-mono">Unlock by solving Marvel Cinematic</span>
+</div>
+</div>
+<div class="h-28 w-full relative">
+<img alt="DC Universe" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChv2h4mfJ-Cp5r6ETZWRiLFNlMloS1JNSHncWbqGteqtgV6AZXZxACY2iXqB3gRcupUjGx3LStapEj_SRF2emcDf6xrH2_bFkwnREvei5ej3_KKxQtsb7drE3z5P2zZaFp5lts01nnXQYYGc8rXJUO06Wu5c0VBfrvreSs-yYEnxEkiEMbvrfKOJ_GJ0qrso3_MveV51Nu7iCfAEjQATuj39lkWagX8skVdmLQsi4e-WXoWBKQQIfmPlYx8WrFTMZdk-XjV_cRMw"/>
+</div>
+<div class="p-4">
+<h3 class="font-display text-lg text-slate-500 mb-1">DC Comics: Gotham</h3>
+<p class="text-xs text-slate-600 font-body line-clamp-2">The Joker has planted riddles across the city. Only the World's Greatest Detective can solve them.</p>
+</div>
+</div>
+</div>
+<div class="relative group select-none">
+<div class="relative bg-card-dark/60 border border-white/5 rounded-xl overflow-hidden backdrop-blur-sm grayscale opacity-70">
+<div class="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3">
+<div class="p-3 bg-black/50 rounded-full border border-white/10 shadow-lg">
+<span class="material-icons text-slate-400 text-3xl">lock</span>
+</div>
+<div class="text-center">
+<span class="text-xs font-display text-slate-300 tracking-widest uppercase block mb-1">Locked Reality</span>
+<span class="text-[10px] text-slate-500 font-mono">Requires Level 5 Clearance</span>
+</div>
+</div>
+<div class="h-28 w-full relative">
+<img alt="Sherlock Holmes" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFcSGw8Smzp0KhRP3V6Lmn7tskZw17YhDaNRm11awxugZ3b6pypJc9wQ5efi-Q6xVoSOEADn1RpoSPrHs0T2fFJUEAG6hhj9itqZ3YeAVguNagKr87MG-U0hU8BmEUrUtRjGaDSWOoI6lMfNF-cafhKcaIb1zgaflVccNgpSlJXzdgUckXUlN_Nx1UfVzn0XkIU6xu97wVEhdrOwubNO2E4cc6ux3IpUqmxz5CHUBiCvTN-w7XOcBjMrbpfMH6b85EEUS74sKiAg"/>
+</div>
+<div class="p-4">
+<h3 class="font-display text-lg text-slate-500 mb-1">221B Baker Street</h3>
+<p class="text-xs text-slate-600 font-body line-clamp-2">Return to the classics. A murder in Victorian London needs your attention.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-background-dark/90 px-4 py-2 rounded-full border border-white/10 backdrop-blur-xl shadow-2xl">
+<button class="p-2 text-slate-400 hover:text-white transition-colors flex flex-col items-center gap-1">
+<span class="material-icons-outlined text-xl">home</span>
+</button>
+<button class="p-2 text-primary hover:text-cyan-300 transition-colors flex flex-col items-center gap-1 shadow-[0_0_15px_rgba(6,182,212,0.3)] rounded-full bg-white/5 border border-primary/20">
+<span class="material-icons text-xl">dashboard</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-white transition-colors flex flex-col items-center gap-1">
+<span class="material-icons-outlined text-xl">emoji_events</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-white transition-colors flex flex-col items-center gap-1">
+<span class="material-icons-outlined text-xl">person</span>
+</button>
+</div>
+
+</body></html>

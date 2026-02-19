@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SherlockIT 2.0 Cyber-Noir Splash</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Orbitron:wght@400;500;700;900&amp;family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        void: "#030005",
+                        cyber: "#0F172A",
+                        neonCyan: "#00f3ff",
+                        neonPurple: "#bd00ff",
+                        neonPink: "#ff0099",
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        tech: ["Orbitron", "sans-serif"],
+                        body: ["Montserrat", "sans-serif"],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 3s linear infinite',
+                    },
+                    keyframes: {
+                        flicker: {
+                            '0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100%': { opacity: 0.99 },
+                            '20%, 21.999%, 63%, 63.999%, 65%, 69.999%': { opacity: 0.4 },
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-purple: #bd00ff;
+        }
+        body {
+            background-color: #020205;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, #2e1065 0%, transparent 50%);
+        }
+        .cyber-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(189, 0, 255, 0.05) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+        .text-glow-cyan {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.7),
+                         0 0 20px rgba(0, 243, 255, 0.5),
+                         0 0 30px rgba(0, 243, 255, 0.3);
+        }
+        .box-glow {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(189, 0, 255, 0.1);
+        }
+        .glitch-crack {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
+            height: 1px;
+            width: 100%;
+            opacity: 0.5;
+            filter: drop-shadow(0 0 2px var(--neon-cyan));
+        }
+        .silhouette-mask {
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        }
+        .neon-border-gradient {
+            background: linear-gradient(45deg, var(--neon-cyan), transparent 40%, transparent 60%, var(--neon-purple));
+            padding: 1px;
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 243, 255, 0.02) 50%);
+            background-size: 100% 4px;
+        }
+    </style>
+<style>
+        body {
+          min-height: max(700px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-white min-h-screen font-body selection:bg-neonCyan selection:text-black overflow-hidden flex flex-col relative">
+<div class="fixed inset-0 z-0 pointer-events-none cyber-grid"></div>
+<div class="fixed inset-0 z-0 pointer-events-none scanline opacity-70"></div>
+<div class="fixed top-[15%] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neonCyan/30 to-transparent animate-pulse"></div>
+<div class="fixed bottom-[30%] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neonPurple/30 to-transparent animate-pulse" style="animation-delay: 1s;"></div>
+<div class="relative z-10 w-full h-full flex flex-col items-center justify-between py-12 px-6 flex-grow">
+<header class="w-full text-center mt-8 relative">
+<div class="absolute inset-0 bg-neonCyan/20 blur-[100px] rounded-full pointer-events-none"></div>
+<h1 class="font-display font-black text-5xl md:text-6xl text-white tracking-widest leading-none relative z-10 text-glow-cyan animate-flicker">
+                SHERLOCK<span class="text-neonCyan">IT</span>
+<span class="block text-2xl md:text-3xl mt-2 font-tech tracking-[0.5em] text-neonPurple opacity-90 text-shadow-none">2.0</span>
+</h1>
+<div class="h-[2px] w-32 mx-auto mt-6 bg-gradient-to-r from-transparent via-neonCyan to-transparent"></div>
+</header>
+<div class="relative w-full max-w-sm aspect-[4/5] flex items-center justify-center my-4">
+<div class="absolute inset-0 neon-border-gradient rounded-sm opacity-80">
+<div class="absolute inset-[1px] bg-void/90 rounded-sm overflow-hidden">
+<img alt="Detective Silhouette" class="w-full h-full object-cover opacity-60 grayscale brightness-75 contrast-125 mix-blend-luminosity silhouette-mask" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4uBG6J-fNcv5ySXf3ZqFhVMQssrEHHKY2FYSxo2bL0Hdggyxu2Vw75afEINXoNNOfEfhWN0OfhvKfIeqAk0QHXIuWdYyVH-onGTrKmVfS0elwC-vnrQUTbgeS9bqr8WZ_zwstziWHTxuuBNP9D022WsNiaHt4zzaysI3DxiFnhPMMSbCGG27ZlZxfQLBcWTo01mFB1HSH1AZzH0FqmFDn1iwP-UG3CF8ZR72ri1kFNQLjsnTXOcNWd0WAXzgBtYvtou0hLRdIUQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-neonPurple/20 via-transparent to-neonCyan/10 mix-blend-overlay"></div>
+<div class="absolute inset-0 shadow-[inset_0_0_50px_rgba(0,243,255,0.15)]"></div>
+<div class="absolute top-4 right-4">
+<span class="material-symbols-outlined text-neonCyan/70 text-2xl animate-spin-slow">data_usage</span>
+</div>
+<div class="absolute bottom-1/4 left-0 w-full text-center transform -rotate-6 opacity-80 mix-blend-screen">
+<span class="font-tech text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-neonCyan via-white to-neonCyan blur-[0.5px]">MULTIVERSE</span>
+</div>
+</div>
+</div>
+<div class="absolute -left-2 top-10 w-1 h-16 bg-neonPurple/50"></div>
+<div class="absolute -right-2 bottom-10 w-1 h-16 bg-neonCyan/50"></div>
+</div>
+<footer class="w-full text-center pb-8 flex flex-col items-center gap-6 relative z-20">
+<div class="flex flex-col items-center space-y-3">
+<div class="flex items-center gap-3 opacity-80">
+<div class="w-2 h-2 bg-neonCyan rounded-full animate-pulse"></div>
+<p class="font-tech text-xl md:text-2xl text-white tracking-[0.2em] font-medium uppercase drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
+                        Case Open
+                    </p>
+<div class="w-2 h-2 bg-neonCyan rounded-full animate-pulse"></div>
+</div>
+<p class="text-xs text-slate-400 font-body tracking-widest uppercase">System Online // Awaiting Input</p>
+</div>
+<button class="group relative px-8 py-4 bg-transparent overflow-hidden rounded transition-all duration-300 hover:scale-105">
+<div class="absolute inset-0 border border-neonPurple/50 group-hover:border-neonCyan transition-colors duration-500 box-glow"></div>
+<div class="absolute inset-0 bg-neonPurple/5 group-hover:bg-neonCyan/10 transition-colors duration-500"></div>
+<div class="relative flex items-center gap-3">
+<span class="font-tech text-sm tracking-widest text-white group-hover:text-neonCyan transition-colors">INITIALIZE</span>
+<span class="material-symbols-outlined text-neonPurple group-hover:text-neonCyan transition-colors text-lg">arrow_forward</span>
+</div>
+</button>
+</footer>
+</div>
+<div class="fixed bottom-0 left-0 w-full h-32 bg-gradient-to-t from-void via-void/80 to-transparent pointer-events-none z-0"></div>
+
+</body></html>

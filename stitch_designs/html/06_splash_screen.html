@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SherlockIT 2.0 Splash Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Orbitron:wght@400;500;700;900&amp;family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        noir: "#050505",
+                        grime: "#1a1a1a",
+                        accent: "#7f1d1d", // Deep blood red
+                        amber: "#78350f", // Dark amber reflection
+                    },
+                    fontFamily: {
+                        display: ["Cinzel", "serif"],
+                        tech: ["Orbitron", "sans-serif"],
+                        body: ["Montserrat", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">:root {
+    --bg-noir: #050505;
+    --grain-opacity: 0.15
+    }
+.neo-noir-grain {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAIXhN8xwnm_arAdPjQe4XFYb4AW0oRnDBKAPaY1nEN61pvzF8GPzTMyisyf9FcS59lBRBSsEgoFuShvrVqddh_wojEny7td857BzCtY5bruc7x3nAAcNt4dsGyz5STwm0qCo-FemN7zaPKirQZHsYL1y3-mBXeEU8qfjefVCOFIjA8DWz1eeHJXkD3bMQLpVVjCFFrneBycVtFMdk4QuCQ0vSTx2OTEbqRjdeBBo1h8aUZ5WTihL1QGUKn2ld0donvU56UqfO7wA);
+    background-repeat: repeat
+    }
+.title-glitch {
+    text-shadow: 2px 0 #7f1d1d, -2px 0 #000;
+    letter-spacing: 0.15em
+    }
+.vignette {
+    background: radial-gradient(circle, transparent 20%, rgba(0, 0, 0, 0.9) 100%)
+    }
+.distressed-text {
+    filter: contrast(150%) brightness(80%);
+    transform: rotate(-3deg);
+    opacity: 0.6
+    }
+.rain-streak {
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05));
+    width: 1px;
+    height: 100px;
+    position: absolute
+    }
+.grime-border {
+    border-image: linear-gradient(to bottom, #333, #000) 1
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-noir text-gray-400 min-h-screen font-body selection:bg-accent selection:text-white overflow-hidden flex flex-col items-center justify-between">
+<div class="fixed inset-0 z-50 pointer-events-none neo-noir-grain opacity-[0.25]"></div>
+<div class="fixed inset-0 z-40 pointer-events-none vignette"></div>
+<div class="absolute inset-0 z-0 overflow-hidden opacity-20">
+<div class="rain-streak left-[10%] top-[-10%]"></div>
+<div class="rain-streak left-[45%] top-[20%]"></div>
+<div class="rain-streak left-[85%] top-[-5%]"></div>
+<div class="rain-streak left-[30%] top-[60%]"></div>
+</div>
+<div class="relative z-10 w-full max-w-md h-screen flex flex-col items-center px-6 pt-12 pb-16 justify-between">
+<header class="text-center w-full">
+<h1 class="font-display font-black text-4xl md:text-5xl text-gray-200 title-glitch uppercase leading-none mb-1">
+                SHERLOCK<span class="text-white">IT</span> 2.0
+            </h1>
+<div class="w-24 h-[1px] bg-accent mx-auto mt-4 shadow-[0_0_10px_#7f1d1d]"></div>
+</header>
+<div class="relative w-full aspect-[2/3] max-h-[55vh] flex items-center justify-center">
+<div class="w-full h-full relative border border-white/5 overflow-hidden shadow-2xl grayscale contrast-150 brightness-75">
+<img alt="High contrast silhouette in a dark setting" class="w-full h-full object-cover mix-blend-multiply opacity-90" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4uBG6J-fNcv5ySXf3ZqFhVMQssrEHHKY2FYSxo2bL0Hdggyxu2Vw75afEINXoNNOfEfhWN0OfhvKfIeqAk0QHXIuWdYyVH-onGTrKmVfS0elwC-vnrQUTbgeS9bqr8WZ_zwstziWHTxuuBNP9D022WsNiaHt4zzaysI3DxiFnhPMMSbCGG27ZlZxfQLBcWTo01mFB1HSH1AZzH0FqmFDn1iwP-UG3CF8ZR72ri1kFNQLjsnTXOcNWd0WAXzgBtYvtou0hLRdIUQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir via-transparent to-noir/40"></div>
+<div class="absolute bottom-1/4 right-1/4 w-32 h-32 bg-amber/20 blur-[60px]"></div>
+<div class="absolute top-1/3 left-1/4 w-20 h-20 bg-accent/10 blur-[40px]"></div>
+<div class="absolute bottom-10 left-6 right-6">
+<h2 class="font-tech text-3xl md:text-4xl text-gray-300 distressed-text tracking-tighter uppercase font-black mix-blend-overlay">
+                        MULTIVERSE<br/>EDITION
+                    </h2>
+</div>
+</div>
+<div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_2px,3px_100%] pointer-events-none opacity-40"></div>
+</div>
+<footer class="w-full text-center flex flex-col items-center gap-8">
+<div class="space-y-2">
+<p class="font-display text-2xl text-gray-100 tracking-[0.3em] font-bold uppercase">
+                    Case Open
+                </p>
+<div class="flex items-center justify-center gap-4">
+<div class="h-[1px] w-12 bg-gray-800"></div>
+<span class="material-symbols-outlined text-accent text-lg">radio_button_checked</span>
+<div class="h-[1px] w-12 bg-gray-800"></div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="flex flex-col items-center gap-3">
+<span class="font-tech text-[10px] tracking-[0.5em] text-gray-600 uppercase">Tap to investigate</span>
+<div class="w-12 h-12 rounded-full border border-gray-800 flex items-center justify-center text-gray-500 group-hover:border-accent group-hover:text-accent transition-colors duration-500">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-noir via-accent to-noir opacity-50"></div>
+
+</body></html>
