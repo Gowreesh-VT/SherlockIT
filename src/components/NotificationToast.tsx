@@ -5,16 +5,18 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 
 export default function NotificationToast() {
-  const { data: session } = useSession();
+  const { status } = useSession();
   const [lastChecked, setLastChecked] = useState<string>("");
 
   useEffect(() => {
     // Set initial check time to now so we only show NEW announcements
-    setLastChecked(new Date().toISOString());
-  }, []);
+    if (status === "authenticated") {
+      setLastChecked(new Date().toISOString());
+    }
+  }, [status]);
 
   useEffect(() => {
-    if (!lastChecked || !session?.user?.teamId) return;
+    if (!lastChecked || status !== "authenticated") return;
 
     const interval = setInterval(async () => {
       try {
@@ -33,7 +35,7 @@ export default function NotificationToast() {
               duration: 8000,
               style: {
                 background: "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(18, 18, 30, 0.98))",
-                border: "1px solid #ffc107", // Warning color for announcements
+                border: "1px solid #ffc107",
                 color: "#fff",
                 fontSize: "0.95rem",
               },
@@ -44,10 +46,10 @@ export default function NotificationToast() {
       } catch {
         // Silently fail
       }
-    }, 5000);
+    }, 8000);
 
     return () => clearInterval(interval);
-  }, [lastChecked, session]);
+  }, [lastChecked, status]);
 
   return null; // Logic only, UI handled by Sonner Toaster in layout
 }

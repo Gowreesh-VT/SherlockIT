@@ -5,7 +5,6 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import NotificationToast from "@/components/NotificationToast";
 import SessionGuard from "@/components/SessionGuard";
 import {
   CheckCircle,
@@ -117,7 +116,6 @@ export default function DashboardPage() {
         fontFamily: "var(--font-rajdhani), sans-serif",
       }}
     >
-      <NotificationToast />
       <SessionGuard />
 
       {/* Cyber Grid Background */}

@@ -44,8 +44,8 @@ export default function AnnouncementsPage() {
     if (status === "authenticated") {
       fetchAnnouncements();
 
-      // Auto-refresh every 30 seconds
-      const interval = setInterval(fetchAnnouncements, 30000);
+      // Auto-refresh every 5 seconds for near-real-time updates
+      const interval = setInterval(fetchAnnouncements, 5000);
       return () => clearInterval(interval);
     }
   }, [status, router]);
