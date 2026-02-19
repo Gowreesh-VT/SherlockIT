@@ -1,152 +1,275 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { LogIn, LogOut, Search, Lock, Info } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-export default function LandingPage() {
-  const { data: session, status } = useSession();
+export default function SplashPage() {
   const router = useRouter();
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.teamId) {
-      router.push("/dashboard");
-    }
-  }, [status, session, router]);
-
-  // Authenticated but no team → Access Denied
-  const isAccessDenied = status === "authenticated" && !session?.user?.teamId;
+  const handleInitialize = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      router.push("/login");
+    }, 800);
+  };
 
   return (
-    <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 overflow-hidden">
-      {/* Floating Orbs decoration - Keep custom for vibe */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div
-          className="animate-float absolute top-20 left-10 h-32 w-32 rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary)), transparent)", animationDelay: "0s" }}
-        />
-        <div
-          className="animate-float absolute top-40 right-20 h-48 w-48 rounded-full opacity-15"
-          style={{ background: "radial-gradient(circle, hsl(var(--secondary)), transparent)", animationDelay: "1s" }}
-        />
-        <div
-          className="animate-float absolute bottom-32 left-1/4 h-24 w-24 rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary)), transparent)", animationDelay: "2s" }}
-        />
-      </div>
+    <main
+      className="text-white min-h-screen overflow-hidden flex flex-col relative"
+      style={{
+        backgroundColor: "#020205",
+        backgroundImage:
+          "radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 60%), radial-gradient(circle at 100% 100%, #2e1065 0%, transparent 50%)",
+        fontFamily: "var(--font-montserrat), sans-serif",
+      }}
+    >
+      {/* Cyber grid background */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundSize: "40px 40px",
+          backgroundImage:
+            "linear-gradient(to right, rgba(0, 243, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(189, 0, 255, 0.05) 1px, transparent 1px)",
+          maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+        }}
+      />
+
+      {/* Scanlines overlay */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none opacity-70"
+        style={{
+          background: "linear-gradient(to bottom, transparent 50%, rgba(0, 243, 255, 0.02) 50%)",
+          backgroundSize: "100% 4px",
+        }}
+      />
+
+      {/* Horizontal neon pulse lines */}
+      <div
+        className="fixed left-0 w-full h-[1px] animate-pulse"
+        style={{
+          top: "15%",
+          background: "linear-gradient(to right, transparent, rgba(0, 243, 255, 0.3), transparent)",
+        }}
+      />
+      <div
+        className="fixed left-0 w-full h-[1px] animate-pulse"
+        style={{
+          bottom: "30%",
+          background: "linear-gradient(to right, transparent, rgba(189, 0, 255, 0.3), transparent)",
+          animationDelay: "1s",
+        }}
+      />
 
       {/* Main content */}
-      <div className="animate-fade-in-up flex flex-col items-center text-center max-w-2xl w-full">
-        {/* Logo / Icon */}
-        <div
-          className="mb-8 flex h-24 w-24 items-center justify-center rounded-2xl text-5xl bg-card border border-border shadow-2xl"
-          style={{
-            boxShadow: isAccessDenied
-              ? "0 8px 32px rgba(239, 68, 68, 0.4)" // destructive
-              : "0 8px 32px rgba(233, 69, 96, 0.4)", // primary
-          }}
-        >
-          {isAccessDenied ? "🚫" : "🔍"}
+      <div
+        className={`relative z-10 w-full h-full flex flex-col items-center justify-between py-12 px-6 flex-grow transition-opacity duration-700 ${
+          isTransitioning ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        {/* Header */}
+        <header className="w-full text-center mt-8 relative">
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              backgroundColor: "rgba(0, 243, 255, 0.2)",
+              filter: "blur(100px)",
+            }}
+          />
+          <h1
+            className="font-black text-5xl md:text-6xl text-white tracking-widest leading-none relative z-10"
+            style={{
+              fontFamily: "var(--font-cinzel), serif",
+              textShadow:
+                "0 0 10px rgba(0, 243, 255, 0.7), 0 0 20px rgba(0, 243, 255, 0.5), 0 0 30px rgba(0, 243, 255, 0.3)",
+              animation: "flicker 3s linear infinite",
+            }}
+          >
+            SHERLOCK<span style={{ color: "#00f3ff" }}>IT</span>
+            <span
+              className="block text-2xl md:text-3xl mt-2 tracking-[0.5em] opacity-90"
+              style={{
+                fontFamily: "var(--font-orbitron), sans-serif",
+                color: "#bd00ff",
+                textShadow: "none",
+              }}
+            >
+              2.0
+            </span>
+          </h1>
+          <div
+            className="h-[2px] w-32 mx-auto mt-6"
+            style={{
+              background: "linear-gradient(to right, transparent, #00f3ff, transparent)",
+            }}
+          />
+        </header>
+
+        {/* Hero Image */}
+        <div className="relative w-full max-w-sm aspect-[4/5] flex items-center justify-center my-4">
+          {/* Neon border frame */}
+          <div
+            className="absolute inset-0 rounded-sm opacity-80"
+            style={{
+              background: "linear-gradient(45deg, #00f3ff, transparent 40%, transparent 60%, #bd00ff)",
+              padding: "1px",
+            }}
+          >
+            <div
+              className="absolute inset-[1px] rounded-sm overflow-hidden"
+              style={{ backgroundColor: "rgba(3, 0, 5, 0.9)" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt="Detective Silhouette"
+                className="w-full h-full object-cover"
+                style={{
+                  opacity: 0.6,
+                  filter: "grayscale(1) brightness(0.75) contrast(1.25)",
+                  mixBlendMode: "luminosity",
+                  maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                }}
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4uBG6J-fNcv5ySXf3ZqFhVMQssrEHHKY2FYSxo2bL0Hdggyxu2Vw75afEINXoNNOfEfhWN0OfhvKfIeqAk0QHXIuWdYyVH-onGTrKmVfS0elwC-vnrQUTbgeS9bqr8WZ_zwstziWHTxuuBNP9D022WsNiaHt4zzaysI3DxiFnhPMMSbCGG27ZlZxfQLBcWTo01mFB1HSH1AZzH0FqmFDn1iwP-UG3CF8ZR72ri1kFNQLjsnTXOcNWd0WAXzgBtYvtou0hLRdIUQ"
+              />
+
+              {/* Color overlay */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(to top, rgba(189, 0, 255, 0.2), transparent, rgba(0, 243, 255, 0.1))",
+                  mixBlendMode: "overlay",
+                }}
+              />
+
+              {/* Inner glow */}
+              <div
+                className="absolute inset-0"
+                style={{ boxShadow: "inset 0 0 50px rgba(0, 243, 255, 0.15)" }}
+              />
+
+              {/* MULTIVERSE text */}
+              <div
+                className="absolute left-0 w-full text-center"
+                style={{
+                  bottom: "25%",
+                  transform: "rotate(-6deg)",
+                  opacity: 0.8,
+                  mixBlendMode: "screen",
+                }}
+              >
+                <span
+                  className="text-4xl font-bold text-transparent bg-clip-text"
+                  style={{
+                    fontFamily: "var(--font-orbitron), sans-serif",
+                    backgroundImage: "linear-gradient(to right, #00f3ff, white, #00f3ff)",
+                    filter: "blur(0.5px)",
+                  }}
+                >
+                  MULTIVERSE
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Side accent bars */}
+          <div
+            className="absolute w-1 h-16"
+            style={{ left: "-8px", top: "40px", backgroundColor: "rgba(189, 0, 255, 0.5)" }}
+          />
+          <div
+            className="absolute w-1 h-16"
+            style={{ right: "-8px", bottom: "40px", backgroundColor: "rgba(0, 243, 255, 0.5)" }}
+          />
         </div>
 
-        {isAccessDenied ? (
-          <Card className="w-full border-destructive/50 bg-destructive/10 backdrop-blur-md">
-             <CardHeader>
-                <CardTitle className="text-destructive flex items-center justify-center gap-2 text-3xl">
-                    <Lock className="h-8 w-8" /> Access Denied
-                </CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-4">
-                <Alert variant="destructive" className="bg-destructive/20 border-destructive/30 text-destructive-foreground">
-                    <AlertTitle>Unregistered Email</AlertTitle>
-                    <AlertDescription>
-                        Your email <Badge variant="outline" className="ml-1 border-destructive/50 text-destructive-foreground">{session?.user?.email}</Badge> is not registered for this event.
-                    </AlertDescription>
-                </Alert>
-                
-                <p className="text-muted-foreground">
-                  Only pre-registered team leaders can access SherlockIT 2.0.
-                  Please contact your event organizer if you believe this is a mistake.
-                </p>
-
-                <Button 
-                    variant="outline" 
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="w-full mt-4 border-destructive/50 hover:bg-destructive/20 hover:text-destructive-foreground"
-                >
-                    <LogOut className="mr-2 h-4 w-4" /> Sign Out & Try Another Account
-                </Button>
-             </CardContent>
-          </Card>
-        ) : (
-          <>
-            {/* Normal Landing State */}
-            <h1
-              className="mb-4 text-5xl font-black tracking-tight md:text-7xl"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-rose-400">Sherlock</span>
-              <span className="text-foreground">IT</span>
-              <Badge variant="secondary" className="ml-2 text-xl align-top bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                2.0
-              </Badge>
-            </h1>
-
-            <p className="mb-2 text-xl font-medium md:text-2xl text-muted-foreground">
-              The Mystery Awaits
-            </p>
-
-            <p className="mb-12 max-w-md text-base text-muted-foreground/80">
-              Explore hidden worlds, solve cryptic clues, and uncover the truth behind the mystery.
-              Every team has one chance — make it count.
-            </p>
-
-            {status === "loading" ? (
+        {/* Footer */}
+        <footer className="w-full text-center pb-8 flex flex-col items-center gap-6 relative z-20">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="flex items-center gap-3 opacity-80">
               <div
-                className="h-14 w-56 animate-pulse rounded-xl bg-muted"
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ backgroundColor: "#00f3ff" }}
               />
-            ) : (
-              <Button
-                size="lg"
-                onClick={() => signIn("google")}
-                className="h-14 px-8 text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all rounded-xl"
+              <p
+                className="text-xl md:text-2xl text-white tracking-[0.2em] font-medium uppercase"
+                style={{
+                  fontFamily: "var(--font-orbitron), sans-serif",
+                  filter: "drop-shadow(0 0 5px rgba(255, 255, 255, 0.5))",
+                }}
               >
-                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
-                  <path
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                    fill="#ffffff"
-                  />
-                  <path
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    fill="#34A853" // Google green, keeping original for brand
-                  />
-                  <path
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    fill="#FBBC05" // Google yellow
-                  />
-                  <path
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    fill="#EA4335" // Google red
-                  />
-                </svg>
-                Sign in with Google
-              </Button>
-            )}
-          </>
-        )}
+                Case Open
+              </p>
+              <div
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ backgroundColor: "#00f3ff" }}
+              />
+            </div>
+            <p
+              className="text-xs tracking-widest uppercase"
+              style={{
+                color: "#94a3b8",
+                fontFamily: "var(--font-montserrat), sans-serif",
+              }}
+            >
+              System Online // Awaiting Input
+            </p>
+          </div>
+
+          {/* INITIALIZE button */}
+          <button
+            onClick={handleInitialize}
+            className="group relative px-8 py-4 bg-transparent overflow-hidden rounded transition-all duration-300 hover:scale-105 cursor-pointer"
+          >
+            <div
+              className="absolute inset-0 transition-colors duration-500"
+              style={{
+                border: "1px solid rgba(189, 0, 255, 0.5)",
+                boxShadow: "0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(189, 0, 255, 0.1)",
+              }}
+            />
+            <div
+              className="absolute inset-0 transition-colors duration-500"
+              style={{ backgroundColor: "rgba(189, 0, 255, 0.05)" }}
+            />
+            <div className="relative flex items-center gap-3">
+              <span
+                className="text-sm tracking-widest text-white group-hover:text-cyan-400 transition-colors"
+                style={{ fontFamily: "var(--font-orbitron), sans-serif" }}
+              >
+                INITIALIZE
+              </span>
+              <ArrowRight className="w-4 h-4 text-purple-500 group-hover:text-cyan-400 transition-colors" />
+            </div>
+          </button>
+        </footer>
       </div>
 
-      {/* Footer */}
-      <div className="absolute bottom-8 text-center">
-        <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-           <Info className="h-4 w-4" /> A mystery-solving adventure by SherlockIT
-        </p>
-      </div>
-    </div>
+      {/* Bottom fade */}
+      <div
+        className="fixed bottom-0 left-0 w-full h-32 pointer-events-none z-0"
+        style={{
+          background: "linear-gradient(to top, #020205, rgba(2, 2, 5, 0.8), transparent)",
+        }}
+      />
+
+      {/* Transition overlay */}
+      <div
+        className={`fixed inset-0 z-50 pointer-events-none transition-opacity duration-700 ${
+          isTransitioning ? "opacity-100" : "opacity-0"
+        }`}
+        style={{ backgroundColor: "#020205" }}
+      />
+
+      <style jsx global>{`
+        @keyframes flicker {
+          0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 0.99; }
+          20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+        }
+      `}</style>
+    </main>
   );
 }
