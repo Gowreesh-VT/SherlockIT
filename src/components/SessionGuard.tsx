@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { LogOut, ShieldAlert } from "lucide-react";
 
 /**
  * SessionGuard - Polls the server every 10 seconds to check if this session
@@ -39,66 +49,34 @@ export default function SessionGuard() {
     return () => clearInterval(interval);
   }, []);
 
-  if (!kicked) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center px-6"
-      style={{
-        background: "rgba(0, 0, 0, 0.85)",
-        backdropFilter: "blur(12px)",
-      }}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl p-8 text-center animate-fade-in-up"
-        style={{
-          background: "linear-gradient(135deg, rgba(26, 26, 46, 0.98), rgba(18, 18, 30, 0.99))",
-          border: "1px solid var(--danger)",
-          boxShadow: "0 8px 48px rgba(255, 82, 82, 0.3)",
-        }}
-      >
-        {/* Icon */}
-        <div
-          className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full text-4xl"
-          style={{
-            background: "rgba(255, 82, 82, 0.15)",
-            border: "2px solid var(--danger)",
-          }}
-        >
-          🚫
-        </div>
-
-        {/* Title */}
-        <h2 className="mb-3 text-2xl font-bold" style={{ color: "var(--danger)" }}>
-          Session Expired
-        </h2>
-
-        {/* Message */}
-        <p className="mb-6 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-          Another device has logged in with your team account.
-          <br />
-          <strong style={{ color: "var(--text-primary)" }}>
-            Only one device can be active at a time.
-          </strong>
-        </p>
-
-        {/* Auto-redirect notice */}
-        <p className="mb-6 text-xs" style={{ color: "var(--text-muted)" }}>
-          You will be redirected to the login page in 5 seconds...
-        </p>
-
-        {/* Manual button */}
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="w-full rounded-xl py-3 text-sm font-semibold transition-all"
-          style={{
-            background: "var(--danger)",
-            color: "#fff",
-          }}
-        >
-          Sign Out Now
-        </button>
-      </div>
-    </div>
+    <AlertDialog open={kicked}>
+      <AlertDialogContent className="border-destructive/50 bg-destructive/5">
+        <AlertDialogHeader>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+            <ShieldAlert className="h-8 w-8 text-destructive" />
+          </div>
+          <AlertDialogTitle className="text-center text-xl text-destructive font-bold">
+            Session Expired
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center py-2 text-foreground/80">
+            Another device has logged in with your team account.
+            <br />
+            <strong>Only one device can be active at a time.</strong>
+          </AlertDialogDescription>
+          <p className="text-center text-xs text-muted-foreground mt-2">
+            Redirecting to login in 5 seconds...
+          </p>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction 
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="w-full sm:w-auto bg-destructive hover:bg-destructive/90 text-white"
+            >
+                <LogOut className="mr-2 h-4 w-4" /> Sign Out Now
+            </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
