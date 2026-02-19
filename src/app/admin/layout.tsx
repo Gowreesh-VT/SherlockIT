@@ -77,8 +77,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="w-64 flex-shrink-0" />
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen bg-slate-950 overflow-x-hidden">
-        <div className="p-8 lg:p-10">
+      <main className="flex-1 min-h-screen bg-slate-950">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
           {children}
         </div>
       </main>

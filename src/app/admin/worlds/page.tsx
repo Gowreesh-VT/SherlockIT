@@ -1,43 +1,145 @@
 'use client';
 
-import { useState } from 'react';
-import { World } from '@/types';
-import { mockWorlds } from '@/data/mockData';
+import { useState, useEffect } from 'react';
+import { fetchWorlds, updateWorld, bulkWorldAction, getAdminKey } from '@/lib/adminApi';
+
+interface WorldData {
+  id: string;
+  title: string;
+  story: string;
+  question: string;
+  answer: string;
+  order: number;
+  isLocked: boolean;
+}
 
 export default function WorldsPage() {
-  const [worlds, setWorlds] = useState<World[]>(mockWorlds);
-  const [editingWorld, setEditingWorld] = useState<World | null>(null);
+  const [worlds, setWorlds] = useState<WorldData[]>([]);
+  const [editingWorld, setEditingWorld] = useState<WorldData | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleLock = (worldId: string) => {
-    setWorlds(worlds.map(world =>
-      world.id === worldId ? { ...world, isLocked: !world.isLocked } : world
-    ));
+  async function loadWorlds() {
+    if (!getAdminKey()) {
+      setError('Admin key not configured');
+      setLoading(false);
+      return;
+    }
+
+    const res = await fetchWorlds();
+    if (res.error) {
+      setError(res.error);
+    } else if (res.data) {
+      setWorlds(res.data.worlds);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadWorlds();
+  }, []);
+
+  const toggleLock = async (worldId: string, currentlyLocked: boolean) => {
+    setSaving(true);
+    const res = await updateWorld(worldId, { isLocked: !currentlyLocked });
+    if (res.error) {
+      setError(res.error);
+    } else {
+      setWorlds(worlds.map(w => w.id === worldId ? { ...w, isLocked: !currentlyLocked } : w));
+    }
+    setSaving(false);
   };
 
-  const unlockAll = () => {
-    setWorlds(worlds.map(world => ({ ...world, isLocked: false })));
+  const unlockAll = async () => {
+    setSaving(true);
+    const res = await bulkWorldAction('unlock-all');
+    if (res.error) {
+      setError(res.error);
+    } else {
+      setWorlds(worlds.map(w => ({ ...w, isLocked: false })));
+    }
+    setSaving(false);
   };
 
-  const lockAll = () => {
-    setWorlds(worlds.map(world => ({ ...world, isLocked: true })));
+  const lockAll = async () => {
+    setSaving(true);
+    const res = await bulkWorldAction('lock-all');
+    if (res.error) {
+      setError(res.error);
+    } else {
+      setWorlds(worlds.map(w => ({ ...w, isLocked: true })));
+    }
+    setSaving(false);
   };
 
-  const handleEdit = (world: World) => {
+  const handleEdit = (world: WorldData) => {
     setEditingWorld({ ...world });
     setShowModal(true);
   };
 
-  const handleSave = () => {
-    if (editingWorld) {
+  const handleSave = async () => {
+    if (!editingWorld) return;
+    setSaving(true);
+    const res = await updateWorld(editingWorld.id, {
+      title: editingWorld.title,
+      story: editingWorld.story,
+      question: editingWorld.question,
+      answer: editingWorld.answer,
+      order: editingWorld.order,
+    });
+    if (res.error) {
+      setError(res.error);
+    } else {
       setWorlds(worlds.map(w => w.id === editingWorld.id ? editingWorld : w));
       setShowModal(false);
       setEditingWorld(null);
     }
+    setSaving(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center gap-3 text-slate-400">
+          <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span>Loading worlds...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed bottom-6 right-6 bg-red-500/90 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
+          <span className="text-sm">{error}</span>
+          <button onClick={() => setError(null)} className="text-white/70 hover:text-white">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Saving Overlay */}
+      {saving && (
+        <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center z-40">
+          <div className="flex items-center gap-3 text-white">
+            <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span>Saving...</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -140,8 +242,9 @@ export default function WorldsPage() {
 
             <div className="flex gap-2 pt-4 border-t border-slate-800">
               <button
-                onClick={() => toggleLock(world.id)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                onClick={() => toggleLock(world.id, world.isLocked)}
+                disabled={saving}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
                   world.isLocked
                     ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400'
                     : 'bg-red-500/10 hover:bg-red-500/20 text-red-400'

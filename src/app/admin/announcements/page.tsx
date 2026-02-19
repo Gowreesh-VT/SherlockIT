@@ -1,14 +1,37 @@
 'use client';
 
-import { useState } from 'react';
-import { Announcement } from '@/types';
-import { mockAnnouncements } from '@/data/mockData';
+import { useState, useEffect } from 'react';
+import { sendAnnouncement, getAdminKey, adminFetch } from '@/lib/adminApi';
+
+interface Announcement {
+  id: string;
+  message: string;
+  createdAt: string;
+}
 
 export default function AnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>(mockAnnouncements);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch existing announcements
+  useEffect(() => {
+    async function loadAnnouncements() {
+      if (!getAdminKey()) {
+        setLoading(false);
+        return;
+      }
+      const res = await adminFetch<{ announcements: Announcement[] }>('/api/announcements');
+      if (res.data) {
+        setAnnouncements(res.data.announcements || []);
+      }
+      setLoading(false);
+    }
+    loadAnnouncements();
+  }, []);
 
   const templates = [
     { icon: 'unlock', label: 'World Unlocked', text: 'Congratulations! A new world has been unlocked!' },
@@ -23,12 +46,20 @@ export default function AnnouncementsPage() {
     if (selectedTemplate === null) return;
     
     setIsSending(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    setError(null);
+
+    const res = await sendAnnouncement(templates[selectedTemplate].text);
+    
+    if (res.error) {
+      setError(res.error);
+      setIsSending(false);
+      return;
+    }
 
     const newAnnouncement: Announcement = {
       id: `a${Date.now()}`,
       message: templates[selectedTemplate].text,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
 
     setAnnouncements([newAnnouncement, ...announcements]);
@@ -43,7 +74,7 @@ export default function AnnouncementsPage() {
     setAnnouncements(announcements.filter(a => a.id !== id));
   };
 
-  const formatDate = (date: Date) => {      
+  const formatDate = (date: string) => {      
     return new Date(date).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -72,76 +103,76 @@ export default function AnnouncementsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-white tracking-tight">Announcements</h1>
-        <p className="text-slate-500 text-sm mt-0.5">Send quick messages to all teams</p>
+        <h1 className="text-2xl font-semibold text-white tracking-tight">Announcements</h1>
+        <p className="text-slate-400 mt-1">Send quick messages to all teams</p>
       </div>
 
       {/* Success Toast */}
       {showSuccess && (
-        <div className="fixed top-6 right-6 bg-emerald-500 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in z-50">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="fixed top-6 right-6 bg-emerald-500 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <span className="font-medium text-sm">Announcement sent!</span>
+          <span className="font-medium">Announcement sent!</span>
         </div>
       )}
 
       {/* Quick Templates */}
-      <div className="bg-slate-900/80 rounded-lg border border-slate-800/80 overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-800/80">
-          <h2 className="text-sm font-semibold text-white">Select Announcement</h2>
-          <p className="text-slate-500 text-xs mt-0.5">Choose a template to send</p>
+      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-800">
+          <h2 className="text-base font-semibold text-white">Select Announcement</h2>
+          <p className="text-slate-500 text-sm mt-1">Choose a template to send</p>
         </div>
-        <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((template, index) => (
             <button
               key={index}
               onClick={() => setSelectedTemplate(index)}
               disabled={isSending}
-              className={`flex flex-col p-3 rounded-lg transition-all text-left group border ${
+              className={`flex flex-col p-4 rounded-xl transition-all text-left group border ${
                 selectedTemplate === index
                   ? 'bg-amber-500/10 border-amber-500/50'
-                  : 'bg-slate-800/40 hover:bg-slate-800/80 border-transparent hover:border-slate-700'
+                  : 'bg-slate-800/50 hover:bg-slate-800 border-transparent hover:border-slate-700'
               } disabled:opacity-50`}
             >
-              <div className="flex items-center gap-2.5 mb-1.5">
-                <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                   selectedTemplate === index ? 'bg-amber-500/20' : 'bg-amber-500/10 group-hover:bg-amber-500/20'
                 }`}>
-                  <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     {getIcon(template.icon)}
                   </svg>
                 </div>
-                <span className="text-white font-medium text-xs">{template.label}</span>
+                <span className="text-white font-medium text-sm">{template.label}</span>
                 {selectedTemplate === index && (
-                  <svg className="w-3.5 h-3.5 text-amber-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-amber-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
               </div>
-              <p className="text-slate-500 text-[11px] leading-relaxed">{template.text}</p>
+              <p className="text-slate-500 text-sm leading-relaxed">{template.text}</p>
             </button>
           ))}
         </div>
         
         {/* Send Button */}
-        <div className="px-5 py-3 border-t border-slate-800/80 flex items-center justify-between">
-          <div className="text-xs">
+        <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between">
+          <div className="text-sm">
             {selectedTemplate !== null ? (
               <span className="text-slate-400">
                 Selected: <span className="text-amber-400 font-medium">{templates[selectedTemplate].label}</span>
               </span>
             ) : (
-              <span className="text-slate-600">No template selected</span>
+              <span className="text-slate-500">No template selected</span>
             )}
           </div>
           <button
             onClick={handleSend}
             disabled={selectedTemplate === null || isSending}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold text-sm rounded-lg transition-all disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold rounded-lg transition-all disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSending ? (
               <>

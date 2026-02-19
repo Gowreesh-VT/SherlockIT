@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mockTeams, mockWorlds, mockAnnouncements, mockFinalSubmissions } from '@/data/mockData';
+import { fetchStats, fetchTeams, getAdminKey, setAdminKey } from '@/lib/adminApi';
+
+interface TeamData {
+  id: string;
+  teamName: string;
+  completedWorldsCount: number;
+  totalWorlds: number;
+  progress: number;
+  finalSubmitted: boolean;
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -12,17 +21,53 @@ export default function AdminDashboard() {
     totalAnnouncements: 0,
     finalSubmissions: 0,
   });
+  const [teams, setTeams] = useState<TeamData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [adminKeyInput, setAdminKeyInput] = useState('');
+
+  async function loadData() {
+    setLoading(true);
+    setError(null);
+
+    const [statsRes, teamsRes] = await Promise.all([
+      fetchStats(),
+      fetchTeams(),
+    ]);
+
+    if (statsRes.error) {
+      setError(statsRes.error);
+      if (statsRes.error.includes('admin key')) {
+        setShowKeyModal(true);
+      }
+    } else if (statsRes.data) {
+      setStats(statsRes.data);
+    }
+
+    if (teamsRes.data) {
+      setTeams(teamsRes.data.teams.slice(0, 5));
+    }
+
+    setLoading(false);
+  }
 
   useEffect(() => {
-    setStats({
-      totalTeams: mockTeams.length,
-      activeTeams: mockTeams.filter(t => t.completedWorlds.length > 0).length,
-      totalWorlds: mockWorlds.length,
-      unlockedWorlds: mockWorlds.filter(w => !w.isLocked).length,
-      totalAnnouncements: mockAnnouncements.length,
-      finalSubmissions: mockFinalSubmissions.length,
-    });
+    if (!getAdminKey()) {
+      setShowKeyModal(true);
+      setLoading(false);
+    } else {
+      loadData();
+    }
   }, []);
+
+  function handleSaveKey() {
+    if (adminKeyInput.trim()) {
+      setAdminKey(adminKeyInput.trim());
+      setShowKeyModal(false);
+      loadData();
+    }
+  }
 
   const statCards = [
     { label: 'Total Teams', value: stats.totalTeams, color: 'bg-blue-500' },
@@ -49,7 +94,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         {statCards.map((stat, index) => (
           <div
             key={index}
@@ -142,35 +187,86 @@ export default function AdminDashboard() {
           <h2 className="text-base font-semibold text-white">Team Progress</h2>
         </div>
         <div className="p-5 space-y-4">
-          {mockTeams.slice(0, 5).map((team) => {
-            const progress = (team.completedWorlds.length / mockWorlds.length) * 100;
-            return (
-              <div key={team.id} className="flex items-center gap-4">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 text-xs font-bold shrink-0">
-                  {team.teamName.charAt(0)}
-                </div>
-                <div className="w-32 text-slate-200 text-sm font-medium truncate">{team.teamName}</div>
-                <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-500 rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <div className="w-14 text-right">
-                  <span className="text-slate-400 text-sm">{team.completedWorlds.length}/{mockWorlds.length}</span>
-                </div>
-                <div className="w-20">
-                  {team.finalSubmitted ? (
-                    <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full font-medium">Done</span>
-                  ) : (
-                    <span className="px-2.5 py-1 bg-slate-800 text-slate-500 text-xs rounded-full font-medium">Pending</span>
-                  )}
-                </div>
+          {teams.length === 0 && !loading && (
+            <p className="text-slate-500 text-sm text-center py-4">No teams registered yet</p>
+          )}
+          {teams.map((team) => (
+            <div key={team.id} className="flex items-center gap-4">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 text-xs font-bold shrink-0">
+                {team.teamName.charAt(0)}
               </div>
-            );
-          })}
+              <div className="w-32 text-slate-200 text-sm font-medium truncate">{team.teamName}</div>
+              <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                  style={{ width: `${team.progress}%` }}
+                />
+              </div>
+              <div className="w-14 text-right">
+                <span className="text-slate-400 text-sm">{team.completedWorldsCount}/{team.totalWorlds}</span>
+              </div>
+              <div className="w-20">
+                {team.finalSubmitted ? (
+                  <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full font-medium">Done</span>
+                ) : (
+                  <span className="px-2.5 py-1 bg-slate-800 text-slate-500 text-xs rounded-full font-medium">Pending</span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* Admin Key Modal */}
+      {showKeyModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-slate-900 rounded-xl p-6 w-full max-w-md mx-4 border border-slate-800">
+            <h3 className="text-lg font-semibold text-white mb-2">Admin API Key Required</h3>
+            <p className="text-slate-400 text-sm mb-4">
+              Enter the admin API key to access the dashboard. This is stored locally in your browser.
+            </p>
+            <input
+              type="password"
+              value={adminKeyInput}
+              onChange={(e) => setAdminKeyInput(e.target.value)}
+              placeholder="Enter admin key..."
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 mb-4 focus:outline-none focus:border-amber-500"
+            />
+            <button
+              onClick={handleSaveKey}
+              disabled={!adminKeyInput.trim()}
+              className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 text-slate-900 disabled:text-slate-500 font-semibold rounded-lg transition-all"
+            >
+              Save & Connect
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-slate-950/50 flex items-center justify-center z-40">
+          <div className="flex items-center gap-3 text-white">
+            <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span>Loading...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error Toast */}
+      {error && !showKeyModal && (
+        <div className="fixed bottom-6 right-6 bg-red-500/90 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
+          <span className="text-sm">{error}</span>
+          <button onClick={() => setError(null)} className="text-white/70 hover:text-white">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,14 +1,79 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { mockFinalSubmissions, mockTeams } from '@/data/mockData';
-import { FinalSubmission } from '@/types';
+import { useState, useMemo, useEffect } from 'react';
+import { fetchSubmissions, fetchTeams, getAdminKey, setAdminKey } from '@/lib/adminApi';
+
+interface Submission {
+  id: string;
+  teamId: string;
+  teamName: string;
+  leaderEmail: string;
+  answer: string;
+  submittedAt: string;
+}
+
+interface Team {
+  id: string;
+  teamName: string;
+}
 
 export default function SubmissionsPage() {
-  const [submissions] = useState<FinalSubmission[]>(mockFinalSubmissions);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
+  
   const [sortBy, setSortBy] = useState<'time' | 'team'>('time');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [selectedSubmission, setSelectedSubmission] = useState<FinalSubmission | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    const [submissionsRes, teamsRes] = await Promise.all([
+      fetchSubmissions(),
+      fetchTeams()
+    ]);
+    
+    if (submissionsRes.error) {
+      if (submissionsRes.error === 'No admin key configured. Please set it in settings.' || 
+          submissionsRes.error === 'Invalid admin key') {
+        setShowKeyModal(true);
+      }
+      setError(submissionsRes.error);
+      setLoading(false);
+      return;
+    }
+    
+    if (submissionsRes.data) {
+      setSubmissions(submissionsRes.data.submissions);
+    }
+    if (teamsRes.data) {
+      setTeams(teamsRes.data.teams);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!getAdminKey()) {
+      setShowKeyModal(true);
+      setLoading(false);
+      return;
+    }
+    loadData();
+  }, []);
+
+  const handleSaveKey = () => {
+    if (keyInput.trim()) {
+      setAdminKey(keyInput.trim());
+      setShowKeyModal(false);
+      setKeyInput('');
+      loadData();
+    }
+  };
 
   const sortedSubmissions = useMemo(() => {
     return [...submissions].sort((a, b) => {
@@ -26,10 +91,10 @@ export default function SubmissionsPage() {
   }, [submissions, sortBy, sortOrder]);
 
   const teamsSubmitted = submissions.length;
-  const totalTeams = mockTeams.length;
+  const totalTeams = teams.length;
   const pendingTeams = totalTeams - teamsSubmitted;
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -41,12 +106,11 @@ export default function SubmissionsPage() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Team Name', 'Real World', 'Villain', 'Weapon', 'Submitted At'];
+    const headers = ['Team Name', 'Email', 'Answer', 'Submitted At'];
     const rows = submissions.map(s => [
       s.teamName,
-      s.realWorld,
-      s.villain,
-      s.weapon,
+      s.leaderEmail,
+      s.answer,
       new Date(s.submittedAt).toISOString(),
     ]);
 
@@ -64,15 +128,58 @@ export default function SubmissionsPage() {
     URL.revokeObjectURL(url);
   };
 
-  const getSubmissionRank = (submission: FinalSubmission) => {
+  const getSubmissionRank = (submission: Submission) => {
     const sorted = [...submissions].sort(
       (a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime()
     );
     return sorted.findIndex(s => s.id === submission.id) + 1;
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Admin Key Modal */}
+      {showKeyModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-md p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Enter Admin Key</h2>
+            <input
+              type="password"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="Admin API Key"
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-amber-500 mb-4"
+            />
+            <button
+              onClick={handleSaveKey}
+              className="w-full px-4 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg font-semibold transition-all"
+            >
+              Save Key
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Toast */}
+      {error && !showKeyModal && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-center gap-3">
+          <svg className="w-5 h-5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-red-400 text-sm">{error}</span>
+          <button onClick={loadData} className="ml-auto px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded text-sm">
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -120,12 +227,12 @@ export default function SubmissionsPage() {
       <div className="bg-slate-900/80 rounded-lg p-4 border border-slate-800/80">
         <div className="flex items-center justify-between mb-2">
           <span className="text-slate-500 text-xs">Submission Progress</span>
-          <span className="text-white text-sm font-medium">{Math.round((teamsSubmitted / totalTeams) * 100)}%</span>
+          <span className="text-white text-sm font-medium">{totalTeams > 0 ? Math.round((teamsSubmitted / totalTeams) * 100) : 0}%</span>
         </div>
         <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-            style={{ width: `${(teamsSubmitted / totalTeams) * 100}%` }}
+            style={{ width: `${totalTeams > 0 ? (teamsSubmitted / totalTeams) * 100 : 0}%` }}
           />
         </div>
       </div>
@@ -175,9 +282,8 @@ export default function SubmissionsPage() {
                 <tr>
                   <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">#</th>
                   <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">Team</th>
-                  <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">Real World</th>
-                  <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">Villain</th>
-                  <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">Weapon</th>
+                  <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">Email</th>
+                  <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">Answer</th>
                   <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider">Submitted</th>
                   <th className="text-left text-slate-500 text-xs font-medium p-4 uppercase tracking-wider"></th>
                 </tr>
@@ -211,9 +317,8 @@ export default function SubmissionsPage() {
                           <span className="text-slate-200 text-sm font-medium">{submission.teamName}</span>
                         </div>
                       </td>
-                      <td className="p-4 text-slate-300 text-sm">{submission.realWorld}</td>
-                      <td className="p-4 text-slate-300 text-sm">{submission.villain}</td>
-                      <td className="p-4 text-slate-300 text-sm">{submission.weapon}</td>
+                      <td className="p-4 text-slate-400 text-sm">{submission.leaderEmail}</td>
+                      <td className="p-4 text-slate-300 text-sm max-w-xs truncate">{submission.answer}</td>
                       <td className="p-4 text-slate-500 text-xs">{formatDate(submission.submittedAt)}</td>
                       <td className="p-4">
                         <button
@@ -240,7 +345,7 @@ export default function SubmissionsPage() {
             <p className="text-slate-500 text-sm mt-1">{pendingTeams} teams pending</p>
           </div>
           <div className="p-4 flex flex-wrap gap-2">
-            {mockTeams
+            {teams
               .filter(team => !submissions.some(s => s.teamId === team.id))
               .map(team => (
                 <span
@@ -284,16 +389,12 @@ export default function SubmissionsPage() {
 
               <div className="space-y-3">
                 <div className="p-4 bg-slate-800/50 rounded-lg">
-                  <p className="text-slate-500 text-xs mb-1">Real World</p>
-                  <p className="text-white font-medium">{selectedSubmission.realWorld}</p>
+                  <p className="text-slate-500 text-xs mb-1">Contact Email</p>
+                  <p className="text-white font-medium">{selectedSubmission.leaderEmail}</p>
                 </div>
                 <div className="p-4 bg-slate-800/50 rounded-lg">
-                  <p className="text-slate-500 text-xs mb-1">Villain</p>
-                  <p className="text-white font-medium">{selectedSubmission.villain}</p>
-                </div>
-                <div className="p-4 bg-slate-800/50 rounded-lg">
-                  <p className="text-slate-500 text-xs mb-1">Weapon</p>
-                  <p className="text-white font-medium">{selectedSubmission.weapon}</p>
+                  <p className="text-slate-500 text-xs mb-1">Final Answer</p>
+                  <p className="text-white font-medium whitespace-pre-wrap">{selectedSubmission.answer}</p>
                 </div>
               </div>
             </div>

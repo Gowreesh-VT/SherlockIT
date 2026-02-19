@@ -1,28 +1,88 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mockEventControl, mockTeams, mockFinalSubmissions } from '@/data/mockData';
+import { fetchFinalAnswerStatus, toggleFinalAnswer, fetchSubmissions, fetchTeams, getAdminKey, setAdminKey } from '@/lib/adminApi';
 
 export default function FinalAnswerPage() {
-  const [isOpen, setIsOpen] = useState(mockEventControl.finalAnswerOpen);
+  const [isOpen, setIsOpen] = useState(false);
   const [autoOpenTime, setAutoOpenTime] = useState<string>('');
   const [isAutoEnabled, setIsAutoEnabled] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState<'open' | 'close' | null>(null);
-
-  const teamsSubmitted = mockFinalSubmissions.length;
-  const totalTeams = mockTeams.length;
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
+  
+  const [teamsSubmitted, setTeamsSubmitted] = useState(0);
+  const [totalTeams, setTotalTeams] = useState(0);
   const pendingTeams = totalTeams - teamsSubmitted;
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    const [statusRes, submissionsRes, teamsRes] = await Promise.all([
+      fetchFinalAnswerStatus(),
+      fetchSubmissions(),
+      fetchTeams()
+    ]);
+    
+    if (statusRes.error) {
+      if (statusRes.error === 'No admin key configured. Please set it in settings.' || 
+          statusRes.error === 'Invalid admin key') {
+        setShowKeyModal(true);
+      }
+      setError(statusRes.error);
+      setLoading(false);
+      return;
+    }
+    
+    if (statusRes.data) {
+      setIsOpen(statusRes.data.finalAnswerOpen);
+    }
+    if (submissionsRes.data) {
+      setTeamsSubmitted(submissionsRes.data.totalSubmissions);
+    }
+    if (teamsRes.data) {
+      setTotalTeams(teamsRes.data.teams.length);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!getAdminKey()) {
+      setShowKeyModal(true);
+      setLoading(false);
+      return;
+    }
+    loadData();
+  }, []);
+
+  const handleSaveKey = () => {
+    if (keyInput.trim()) {
+      setAdminKey(keyInput.trim());
+      setShowKeyModal(false);
+      setKeyInput('');
+      loadData();
+    }
+  };
 
   useEffect(() => {
     if (isAutoEnabled && autoOpenTime) {
-      const interval = setInterval(() => {
+      const interval = setInterval(async () => {
         const now = new Date();
         const target = new Date(autoOpenTime);
         const diff = target.getTime() - now.getTime();
 
         if (diff <= 0) {
-          setIsOpen(true);
+          // Auto-open submissions via API
+          const result = await toggleFinalAnswer('open');
+          if (result.data) {
+            setIsOpen(true);
+          }
           setCountdown(null);
           setIsAutoEnabled(false);
           clearInterval(interval);
@@ -46,8 +106,18 @@ export default function FinalAnswerPage() {
     }
   };
 
-  const confirmToggle = () => {
-    setIsOpen(!isOpen);
+  const confirmToggle = async () => {
+    setSaving(true);
+    const action = isOpen ? 'close' : 'open';
+    const result = await toggleFinalAnswer(action);
+    
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setIsOpen(!isOpen);
+    }
+    
+    setSaving(false);
     setShowConfirmModal(null);
   };
 
@@ -57,8 +127,61 @@ export default function FinalAnswerPage() {
     setIsAutoEnabled(true);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Admin Key Modal */}
+      {showKeyModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-md p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Enter Admin Key</h2>
+            <input
+              type="password"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="Admin API Key"
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-amber-500 mb-4"
+            />
+            <button
+              onClick={handleSaveKey}
+              className="w-full px-4 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg font-semibold transition-all"
+            >
+              Save Key
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Toast */}
+      {error && !showKeyModal && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-center gap-3">
+          <svg className="w-5 h-5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-red-400 text-sm">{error}</span>
+          <button onClick={loadData} className="ml-auto px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded text-sm">
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Saving Overlay */}
+      {saving && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+          <div className="bg-slate-900 rounded-lg p-4 flex items-center gap-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-500"></div>
+            <span className="text-white">Updating...</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-white">Final Answer Control</h1>

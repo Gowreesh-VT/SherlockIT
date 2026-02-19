@@ -1,22 +1,64 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { mockTeams, mockWorlds, mockProgress } from '@/data/mockData';
+import { useState, useEffect, useMemo } from 'react';
+import { fetchProgress, getAdminKey } from '@/lib/adminApi';
+
+interface TeamProgress {
+  id: string;
+  teamName: string;
+  completedCount: number;
+  totalWorlds: number;
+  progressPercent: number;
+  finalSubmitted: boolean;
+  lastActive: string;
+}
+
+interface ProgressSummary {
+  totalTeams: number;
+  teamsCompleted100: number;
+  teamsOver50: number;
+  teamsStarted: number;
+  averageProgress: number;
+}
 
 export default function ProgressPage() {
+  const [teams, setTeams] = useState<TeamProgress[]>([]);
+  const [summary, setSummary] = useState<ProgressSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'progress' | 'active'>('progress');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  useEffect(() => {
+    async function loadProgress() {
+      if (!getAdminKey()) {
+        setError('Admin key not configured');
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetchProgress();
+      if (res.error) {
+        setError(res.error);
+      } else if (res.data) {
+        setTeams(res.data.teams);
+        setSummary(res.data.summary);
+      }
+      setLoading(false);
+    }
+    loadProgress();
+  }, []);
+
   const sortedTeams = useMemo(() => {
-    return [...mockTeams].sort((a, b) => {
+    return [...teams].sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
         case 'name':
           comparison = a.teamName.localeCompare(b.teamName);
           break;
         case 'progress':
-          comparison = a.completedWorlds.length - b.completedWorlds.length;
+          comparison = a.progressPercent - b.progressPercent;
           break;
         case 'active':
           comparison = new Date(a.lastActive).getTime() - new Date(b.lastActive).getTime();
@@ -24,27 +66,9 @@ export default function ProgressPage() {
       }
       return sortOrder === 'asc' ? comparison : -comparison;
     });
-  }, [sortBy, sortOrder]);
+  }, [teams, sortBy, sortOrder]);
 
-  const teamProgress = useMemo(() => {
-    if (!selectedTeam) return [];
-    return mockProgress.filter(p => p.teamId === selectedTeam);
-  }, [selectedTeam]);
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getProgressPercentage = (completedWorlds: string[]) => {
-    return (completedWorlds.length / mockWorlds.length) * 100;
-  };
-
-  const getTimeSince = (date: Date) => {
+  const getTimeSince = (date: string) => {
     const now = new Date();
     const diff = now.getTime() - new Date(date).getTime();
     const minutes = Math.floor(diff / (1000 * 60));
@@ -54,14 +78,34 @@ export default function ProgressPage() {
     return `${Math.floor(hours / 24)}d ago`;
   };
 
-  const totalAttempts = mockProgress.reduce((sum, p) => sum + p.attempts, 0);
-  const avgAttemptsPerWorld = mockProgress.length > 0
-    ? (totalAttempts / mockProgress.length).toFixed(1)
-    : '0';
-  const teamsCompletedAll = mockTeams.filter(t => t.completedWorlds.length === mockWorlds.length).length;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center gap-3 text-slate-400">
+          <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span>Loading progress...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed bottom-6 right-6 bg-red-500/90 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
+          <span className="text-sm">{error}</span>
+          <button onClick={() => setError(null)} className="text-white/70 hover:text-white">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-white">Progress Tracking</h1>
@@ -73,30 +117,30 @@ export default function ProgressPage() {
         <div className="bg-slate-900 rounded-xl p-5 border border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <span className="text-2xl font-bold text-white">{mockTeams.length}</span>
+            <span className="text-2xl font-bold text-white">{summary?.totalTeams || 0}</span>
           </div>
           <p className="text-slate-400 text-sm">Total Teams</p>
         </div>
         <div className="bg-slate-900 rounded-xl p-5 border border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-2xl font-bold text-emerald-400">{teamsCompletedAll}</span>
+            <span className="text-2xl font-bold text-emerald-400">{summary?.teamsCompleted100 || 0}</span>
           </div>
           <p className="text-slate-400 text-sm">Completed All</p>
         </div>
         <div className="bg-slate-900 rounded-xl p-5 border border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <div className="w-2 h-2 rounded-full bg-violet-500" />
-            <span className="text-2xl font-bold text-violet-400">{totalAttempts}</span>
+            <span className="text-2xl font-bold text-violet-400">{summary?.teamsStarted || 0}</span>
           </div>
-          <p className="text-slate-400 text-sm">Total Attempts</p>
+          <p className="text-slate-400 text-sm">Teams Started</p>
         </div>
         <div className="bg-slate-900 rounded-xl p-5 border border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="text-2xl font-bold text-amber-400">{avgAttemptsPerWorld}</span>
+            <span className="text-2xl font-bold text-amber-400">{summary?.averageProgress || 0}%</span>
           </div>
-          <p className="text-slate-400 text-sm">Avg Attempts/World</p>
+          <p className="text-slate-400 text-sm">Avg Progress</p>
         </div>
       </div>
 
@@ -132,20 +176,18 @@ export default function ProgressPage() {
             </div>
           </div>
           <div className="divide-y divide-slate-800">
-            {sortedTeams.map((team) => {
-              const progress = getProgressPercentage(team.completedWorlds);
-              return (
-                <div
-                  key={team.id}
-                  onClick={() => setSelectedTeam(team.id === selectedTeam ? null : team.id)}
-                  className={`px-6 py-4 cursor-pointer transition-all ${
-                    selectedTeam === team.id
-                      ? 'bg-amber-500/5 border-l-2 border-amber-500'
-                      : 'hover:bg-slate-800/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-bold text-sm shrink-0">
+            {sortedTeams.map((team) => (
+              <div
+                key={team.id}
+                onClick={() => setSelectedTeam(team.id === selectedTeam ? null : team.id)}
+                className={`px-6 py-4 cursor-pointer transition-all ${
+                  selectedTeam === team.id
+                    ? 'bg-amber-500/5 border-l-2 border-amber-500'
+                    : 'hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-bold text-sm shrink-0">
                       {team.teamName.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -161,11 +203,11 @@ export default function ProgressPage() {
                         <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden max-w-[200px]">
                           <div
                             className="h-full bg-amber-500 rounded-full transition-all"
-                            style={{ width: `${progress}%` }}
+                            style={{ width: `${team.progressPercent}%` }}
                           />
                         </div>
                         <span className="text-slate-500 text-xs">
-                          {team.completedWorlds.length}/{mockWorlds.length}
+                          {team.completedCount}/{team.totalWorlds}
                         </span>
                       </div>
                     </div>
@@ -174,8 +216,7 @@ export default function ProgressPage() {
                     </div>
                   </div>
                 </div>
-              );
-            })}
+            ))}
           </div>
         </div>
 
@@ -188,7 +229,7 @@ export default function ProgressPage() {
             {selectedTeam ? (
               <>
                 {(() => {
-                  const team = mockTeams.find(t => t.id === selectedTeam);
+                  const team = teams.find(t => t.id === selectedTeam);
                   if (!team) return null;
                   return (
                     <div className="space-y-4">
@@ -205,7 +246,7 @@ export default function ProgressPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-slate-800/50 rounded-lg">
                           <p className="text-slate-500 text-xs mb-1">Worlds</p>
-                          <p className="text-lg font-bold text-white">{team.completedWorlds.length}/{mockWorlds.length}</p>
+                          <p className="text-lg font-bold text-white">{team.completedCount}/{team.totalWorlds}</p>
                         </div>
                         <div className="p-3 bg-slate-800/50 rounded-lg">
                           <p className="text-slate-500 text-xs mb-1">Final</p>
@@ -213,32 +254,16 @@ export default function ProgressPage() {
                         </div>
                       </div>
 
-                      <div>
-                        <h4 className="text-slate-300 text-sm font-medium mb-3">Attempt History</h4>
-                        <div className="space-y-2 max-h-64 overflow-y-auto">
-                          {teamProgress.length > 0 ? (
-                            teamProgress.map((progress, index) => (
-                              <div
-                                key={index}
-                                className="p-3 bg-slate-800/50 rounded-lg"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="text-slate-200 text-sm">{progress.worldTitle}</span>
-                                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </div>
-                                <div className="flex items-center justify-between mt-1">
-                                  <span className="text-slate-500 text-xs">{progress.attempts} attempts</span>
-                                  <span className="text-slate-500 text-xs">
-                                    {progress.completedAt && formatDate(progress.completedAt)}
-                                  </span>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-slate-500 text-sm text-center py-4">No attempts recorded</p>
-                          )}
+                      <div className="p-3 bg-slate-800/50 rounded-lg">
+                        <p className="text-slate-500 text-xs mb-1">Progress</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-amber-500 rounded-full transition-all"
+                              style={{ width: `${team.progressPercent}%` }}
+                            />
+                          </div>
+                          <span className="text-white font-bold">{team.progressPercent}%</span>
                         </div>
                       </div>
                     </div>
@@ -255,52 +280,6 @@ export default function ProgressPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* World Completion Heatmap */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-800">
-          <h2 className="text-base font-semibold text-white">World Completion Matrix</h2>
-        </div>
-        <div className="p-6 overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th className="text-left text-slate-500 text-sm font-medium p-2">Team</th>
-                {mockWorlds.map((world) => (
-                  <th key={world.id} className="text-center text-slate-500 text-sm font-medium p-2">
-                    W{world.order}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {mockTeams.map((team) => (
-                <tr key={team.id} className="border-t border-slate-800">
-                  <td className="p-2 text-slate-300 text-sm font-medium">{team.teamName}</td>
-                  {mockWorlds.map((world) => {
-                    const isCompleted = team.completedWorlds.includes(world.id);
-                    return (
-                      <td key={world.id} className="p-2 text-center">
-                        <span className={`inline-flex w-7 h-7 items-center justify-center rounded-md text-sm ${
-                          isCompleted
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-slate-800 text-slate-600'
-                        }`}>
-                          {isCompleted ? (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          ) : '—'}
-                        </span>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>
