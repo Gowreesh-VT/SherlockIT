@@ -18,7 +18,13 @@ export default function FinalAnswerPage() {
   
   const [teamsSubmitted, setTeamsSubmitted] = useState(0);
   const [totalTeams, setTotalTeams] = useState(0);
-  const pendingTeams = totalTeams - teamsSubmitted;
+  const [pendingTeams] = [totalTeams - teamsSubmitted];
+
+  const [correctRealWorld, setCorrectRealWorld] = useState('');
+  const [correctVillain, setCorrectVillain] = useState('');
+  const [correctWeapon, setCorrectWeapon] = useState('');
+  const [savingAnswers, setSavingAnswers] = useState(false);
+  const [answersSaved, setAnswersSaved] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -49,6 +55,21 @@ export default function FinalAnswerPage() {
     if (teamsRes.data) {
       setTotalTeams(teamsRes.data.teams.length);
     }
+
+    // Load correct answers from event-control
+    try {
+      const adminKey = getAdminKey();
+      const ecRes = await fetch('/api/admin/event-control', {
+        headers: { 'x-admin-key': adminKey || '' },
+      });
+      if (ecRes.ok) {
+        const ecData = await ecRes.json();
+        setCorrectRealWorld(ecData.correctRealWorld || '');
+        setCorrectVillain(ecData.correctVillain || '');
+        setCorrectWeapon(ecData.correctWeapon || '');
+      }
+    } catch { /* ignore */ }
+
     setLoading(false);
   };
 
@@ -78,7 +99,6 @@ export default function FinalAnswerPage() {
         const diff = target.getTime() - now.getTime();
 
         if (diff <= 0) {
-          // Auto-open submissions via API
           const result = await toggleFinalAnswer('open');
           if (result.data) {
             setIsOpen(true);
@@ -276,7 +296,7 @@ export default function FinalAnswerPage() {
       </div>
 
       {/* Auto-Open Timer */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+      {/* <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-800">
           <h2 className="text-base font-semibold text-white">Auto-Open Timer</h2>
           <p className="text-slate-500 text-sm mt-1">Schedule submissions to open automatically</p>
@@ -328,42 +348,70 @@ export default function FinalAnswerPage() {
             )}
           </div>
         </div>
-      </div>
+      </div> */}
 
-      {/* Required Fields Info */}
+      {/* Correct Answers */}
       <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-800">
-          <h2 className="text-base font-semibold text-white">Submission Fields</h2>
-          <p className="text-slate-500 text-sm mt-1">Teams will need to provide these answers</p>
+        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-white">Correct Answers</h2>
+            <p className="text-slate-500 text-sm mt-1">Set these to auto-evaluate team submissions</p>
+          </div>
+          {answersSaved && (
+            <span className="text-emerald-400 text-xs font-medium">✓ Saved</span>
+          )}
         </div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-slate-800/50 rounded-lg">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-sm font-semibold text-white mb-1">Real World</h3>
-            <p className="text-slate-500 text-xs">The location where the crime took place</p>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-slate-400 text-sm mb-1.5">Real World</label>
+            <input
+              type="text"
+              value={correctRealWorld}
+              onChange={(e) => { setCorrectRealWorld(e.target.value); setAnswersSaved(false); }}
+              placeholder="e.g. The Abandoned Library"
+              className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-amber-500 placeholder-slate-600"
+            />
           </div>
-          <div className="p-4 bg-slate-800/50 rounded-lg">
-            <div className="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <h3 className="text-sm font-semibold text-white mb-1">Villain</h3>
-            <p className="text-slate-500 text-xs">The person responsible for the mystery</p>
+          <div>
+            <label className="block text-slate-400 text-sm mb-1.5">Villain</label>
+            <input
+              type="text"
+              value={correctVillain}
+              onChange={(e) => { setCorrectVillain(e.target.value); setAnswersSaved(false); }}
+              placeholder="e.g. Professor Moriarty"
+              className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-amber-500 placeholder-slate-600"
+            />
           </div>
-          <div className="p-4 bg-slate-800/50 rounded-lg">
-            <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
-            </div>
-            <h3 className="text-sm font-semibold text-white mb-1">Weapon</h3>
-            <p className="text-slate-500 text-xs">The tool or method used in the crime</p>
+          <div>
+            <label className="block text-slate-400 text-sm mb-1.5">Weapon</label>
+            <input
+              type="text"
+              value={correctWeapon}
+              onChange={(e) => { setCorrectWeapon(e.target.value); setAnswersSaved(false); }}
+              placeholder="e.g. Poison"
+              className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-amber-500 placeholder-slate-600"
+            />
           </div>
+          <button
+            onClick={async () => {
+              setSavingAnswers(true);
+              setAnswersSaved(false);
+              try {
+                const adminKey = getAdminKey();
+                const res = await fetch('/api/admin/event-control', {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey || '' },
+                  body: JSON.stringify({ correctRealWorld, correctVillain, correctWeapon }),
+                });
+                if (res.ok) setAnswersSaved(true);
+              } catch { /* ignore */ }
+              setSavingAnswers(false);
+            }}
+            disabled={savingAnswers || (!correctRealWorld.trim() && !correctVillain.trim() && !correctWeapon.trim())}
+            className="w-full px-4 py-3 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 text-slate-900 disabled:text-slate-600 font-semibold rounded-lg transition-all disabled:cursor-not-allowed"
+          >
+            {savingAnswers ? 'Saving...' : 'Save Correct Answers'}
+          </button>
         </div>
       </div>
 
