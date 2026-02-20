@@ -23,9 +23,9 @@ export async function GET(req: NextRequest) {
       EventControl.findOne({}).lean(),
     ]);
 
-    const correctRealWorld = normalize(eventControl?.correctRealWorld || "Paris");
-    const correctVillain = normalize(eventControl?.correctVillain || "Moriarty");
-    const correctWeapon = normalize(eventControl?.correctWeapon || "Dagger");
+    const correctRealWorld = normalize(eventControl?.correctRealWorld || "MURDERCEPTION");
+    const correctVillain = normalize(eventControl?.correctVillain || "Adrian Voss");
+    const correctWeapon = normalize(eventControl?.correctWeapon || "glass dagger");
     const hasCorrectAnswers = !!(correctRealWorld && correctVillain && correctWeapon);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
