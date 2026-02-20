@@ -27,10 +27,6 @@ export async function GET(req: NextRequest) {
     const correctVillain = eventControl?.correctVillain ? normalize(eventControl.correctVillain) : "";
     const correctWeapon = eventControl?.correctWeapon ? normalize(eventControl.correctWeapon) : "";
 
-    // const correctRealWorld = normalize(eventControl?.correctRealWorld || "MURDERCEPTION");
-    // const correctVillain = normalize(eventControl?.correctVillain || "Adrian Voss");
-    // const correctWeapon = normalize(eventControl?.correctWeapon || "glass dagger");
-
     const hasCorrectAnswers = !!(correctRealWorld && correctVillain && correctWeapon);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
