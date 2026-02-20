@@ -23,9 +23,9 @@ export async function GET(req: NextRequest) {
       EventControl.findOne({}).lean(),
     ]);
 
-    const correctRealWorld = eventControl?.correctRealWorld ? normalize(eventControl.correctRealWorld) : "";
-    const correctVillain = eventControl?.correctVillain ? normalize(eventControl.correctVillain) : "";
-    const correctWeapon = eventControl?.correctWeapon ? normalize(eventControl.correctWeapon) : "";
+    const correctRealWorld = process.env.CORRECT_REAL_WORLD ? normalize(process.env.CORRECT_REAL_WORLD) : "";
+    const correctVillain = process.env.CORRECT_VILLAIN ? normalize(process.env.CORRECT_VILLAIN) : "";
+    const correctWeapon = process.env.CORRECT_WEAPON ? normalize(process.env.CORRECT_WEAPON) : "";
 
     const hasCorrectAnswers = !!(correctRealWorld && correctVillain && correctWeapon);
 
