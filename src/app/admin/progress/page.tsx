@@ -3,6 +3,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { fetchProgress, getAdminKey } from '@/lib/adminApi';
 
+interface WorldData {
+  id: string;
+  title: string;
+  order: number;
+}
+
 interface TeamProgress {
   id: string;
   teamName: string;
@@ -11,6 +17,11 @@ interface TeamProgress {
   progressPercent: number;
   finalSubmitted: boolean;
   lastActive: string;
+  completedWorlds: Array<{
+    _id: string;
+    title: string;
+    order: number;
+  }>;
 }
 
 interface ProgressSummary {
@@ -23,6 +34,7 @@ interface ProgressSummary {
 
 export default function ProgressPage() {
   const [teams, setTeams] = useState<TeamProgress[]>([]);
+  const [worlds, setWorlds] = useState<WorldData[]>([]);
   const [summary, setSummary] = useState<ProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +56,7 @@ export default function ProgressPage() {
       } else if (res.data) {
         setTeams(res.data.teams);
         setSummary(res.data.summary);
+        setWorlds(res.data.worlds || []);
       }
       setLoading(false);
     }
@@ -175,7 +188,7 @@ export default function ProgressPage() {
               </button>
             </div>
           </div>
-          <div className="divide-y divide-slate-800">
+          <div className="divide-y divide-slate-800 max-h-[600px] overflow-y-auto">
             {sortedTeams.map((team) => (
               <div
                 key={team.id}
@@ -221,18 +234,18 @@ export default function ProgressPage() {
         </div>
 
         {/* Team Details */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+        <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden sticky top-6 self-start">
           <div className="px-6 py-4 border-b border-slate-800">
             <h2 className="text-base font-semibold text-white">Team Details</h2>
           </div>
-          <div className="p-4">
+          <div className="p-4 max-h-[600px] overflow-y-auto">
             {selectedTeam ? (
               <>
                 {(() => {
                   const team = teams.find(t => t.id === selectedTeam);
                   if (!team) return null;
                   return (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 text-lg font-bold">
                           {team.teamName.charAt(0)}
@@ -244,18 +257,18 @@ export default function ProgressPage() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-slate-800/50 rounded-lg">
+                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                           <p className="text-slate-500 text-xs mb-1">Worlds</p>
                           <p className="text-lg font-bold text-white">{team.completedCount}/{team.totalWorlds}</p>
                         </div>
-                        <div className="p-3 bg-slate-800/50 rounded-lg">
+                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                           <p className="text-slate-500 text-xs mb-1">Final</p>
                           <p className="text-lg font-bold text-white">{team.finalSubmitted ? 'Yes' : 'No'}</p>
                         </div>
                       </div>
 
-                      <div className="p-3 bg-slate-800/50 rounded-lg">
-                        <p className="text-slate-500 text-xs mb-1">Progress</p>
+                      <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                        <p className="text-slate-500 text-xs mb-1">Overall Progress</p>
                         <div className="flex items-center gap-3 mt-2">
                           <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
                             <div
@@ -264,6 +277,35 @@ export default function ProgressPage() {
                             />
                           </div>
                           <span className="text-white font-bold">{team.progressPercent}%</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <h4 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">World Completion Status</h4>
+                        <div className="space-y-2">
+                          {worlds.map((world, index) => {
+                            const isCompleted = team.completedWorlds?.some(w => w._id === world.id || (w as any).id === world.id);
+                            return (
+                              <div key={world.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-800/50 transition-colors">
+                                <span className="text-slate-500 text-xs font-mono w-4">{index + 1}.</span>
+                                {isCompleted ? (
+                                  <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-5 h-5 text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                )}
+                                <span className={`text-sm truncate ${isCompleted ? 'text-slate-200' : 'text-slate-500'}`}>
+                                  {world.title}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {worlds.length === 0 && (
+                            <p className="text-slate-500 text-sm italic">No worlds configured.</p>
+                          )}
                         </div>
                       </div>
                     </div>
