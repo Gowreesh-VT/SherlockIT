@@ -142,6 +142,16 @@ export async function fetchProgress() {
       progressPercent: number;
       finalSubmitted: boolean;
       lastActive: string;
+      completedWorlds: Array<{
+        _id: string;
+        title: string;
+        order: number;
+      }>;
+    }>;
+    worlds: Array<{
+      id: string;
+      title: string;
+      order: number;
     }>;
   }>('/api/admin/progress');
 }
